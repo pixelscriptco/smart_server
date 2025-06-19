@@ -1,0 +1,5 @@
+ run migration
+ npx sequelize-cli db:migrate 
+ 
+ //run seeder file
+ npx sequelize-cli db:seed --seed 20240320_unit_status_seeder.js
