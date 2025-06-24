@@ -15,6 +15,8 @@ router.post('/', auth, unitController.createUnit);
 // Update unit
 router.put('/:id', auth, unitController.updateUnit);
 
+router.put('/:unit_id/status', auth, unitController.updateStatus);
+
 // Delete unit
 router.delete('/:id', auth, unitController.deleteUnit);
 

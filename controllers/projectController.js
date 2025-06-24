@@ -79,17 +79,21 @@ const projectController = {
           });
         }
 
-        const { name, description, status } = req.body;
+        const { name, description, company_id, project_url } = req.body;
+
+        if (!name || !company_id) {
+          return res.status(400).json({ message: 'Missing required fields.' });
+        }
         
         // Create project with logo URL from S3
         const project = await Project.create({
           name,
           description,
           status: 1,
-          user_id: req.user.id,
-          url: req.body.name,
-          project_url: req.body.project_url,
-          logo: req.file ? req.file.location : null ,// S3 file URL
+          user_id: company_id,
+          url: name.replace(/\s+/g, ''),
+          project_url: project_url,
+          logo: req.file ? req.file.location : null 
         });
 
         res.status(201).json({

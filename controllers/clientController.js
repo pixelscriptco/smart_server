@@ -1,4 +1,4 @@
-const { Project, Unit,Building,Tower, User,Booking,UnitPlan,Floor } = require('../models');
+const { Project, Unit,Building,Tower, User,Booking,UnitPlan,Floor,UnitStatus } = require('../models');
 const { Op, where } = require('sequelize');
 const jwt = require('jsonwebtoken');
 
@@ -77,7 +77,7 @@ exports.login = async(req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'name', 'email', 'company', 'type']
+      attributes: ['id', 'name', 'email','mobile', 'company', 'type']
     });
 
     if (!user) {
@@ -96,6 +96,59 @@ exports.getUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching user details',
+      error: error.message
+    });
+  }
+};
+
+// Update unit price and status (with user verification)
+exports.updateProfile = async (req, res) => {
+  try {
+    const id = req.user.id;
+    const { name, company, mobile } = req.body;
+
+    // Validate input
+    if (!name && !company) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name or Company must be provided for update'
+      });
+    }
+
+    // Verify unit belongs to user's project
+    const user = await User.findOne({
+      where: { id }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found or unauthorized'
+      });
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (company) updateData.company = company;
+    if (mobile) updateData.mobile = mobile;
+
+    const [updated] = await User.update(updateData, {
+      where: { id }
+    });
+
+    // Get updated unit data
+    const updatedProfile = await User.findByPk(id);
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedProfile
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating user',
       error: error.message
     });
   }
@@ -120,11 +173,17 @@ exports.listProjects = async (req, res) => {
       projects.map(async (project) => {
         const min_price = await UnitPlan.min('cost', { where: { project_id: project.id } });
         const max_price = await UnitPlan.max('cost', { where: { project_id: project.id } });
-        return {
-          ...project.toJSON(),
-          min_price,
-          max_price
-        };
+        if(min_price && max_price){
+          return {
+            ...project.toJSON(),
+            min_price,
+            max_price
+          };
+        }else{
+          return {
+            ...project.toJSON()
+          };
+        }
       })
     );
 
@@ -291,12 +350,19 @@ exports.listUnits = async (req, res) => {
     const units = await Unit.findAll({
       where: whereClause,
       order: [['id', 'ASC']],
-      include: [{
-        model: UnitPlan,
-        as:'unit_plans',
-        where: { status:1,project_id: project_id},
-        attributes: ['id','plan','type', 'area','name','cost']
-      }]
+      include: [
+        {
+          model: UnitPlan,
+          as:'unit_plans',
+          where: { status:1,project_id: project_id},
+          attributes: ['id','plan','type', 'area','name','cost']
+        },
+        {
+          model: UnitStatus,
+          as: 'unit_status',
+          attributes: ['id', 'name', 'color']
+        }
+      ],
     });
 
     res.json({
@@ -406,6 +472,19 @@ exports.getUnitDetails = async (req, res) => {
     });
   }
 };
+
+exports.updateStatus = async(req, res) => {
+  const { unit_id } = req.params;
+  const { status } = req.body;
+  if (![1,2,3].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status' });
+  }
+  const unit = await Unit.findByPk(unit_id);
+  if (!unit) return res.status(404).json({ message: 'Unit not found' });
+  unit.status = status;
+  await unit.save();
+  res.json({ success: true, unit });
+},
 
 // List all bookings with pagination and search
 exports.listBookings = async (req, res) => {

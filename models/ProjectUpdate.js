@@ -43,11 +43,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: true,
     },
-    created_by: {
-        type: String,
-        ref: 'User',
-        required: true
-    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -61,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ProjectUpdate',
-    tableName: 'project_update',
+    tableName: 'project_updates',
     timestamps: true,
     underscored: true,
     indexes: [

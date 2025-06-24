@@ -132,7 +132,7 @@ const floorController = {
         // Get S3 URLs for uploaded files
         const image_url = req.files.image[0].location;
         const svg_url = req.files.svg[0].location;
-        const unit_count = units.length;
+        const unit_count = units;
         
         // Create floorplan record
         const floorplan = await FloorPlan.create({

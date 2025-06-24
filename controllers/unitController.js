@@ -148,6 +148,19 @@ const unitController = {
     }
   },
 
+  async updateStatus(req, res){
+    const { unit_id } = req.params;
+    const { status } = req.body;
+    if (![1,2,3].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    const unit = await Unit.findByPk(unit_id);
+    if (!unit) return res.status(404).json({ message: 'Unit not found' });
+    unit.status = status;
+    await unit.save();
+    res.json({ success: true, unit });
+  },
+
   async getFloorplan(req, res) {
     try {
       const { building_id } = req.params;

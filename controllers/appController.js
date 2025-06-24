@@ -242,7 +242,7 @@ const appController = {
 
   async getFloorDetails(req, res){
     try {
-      const { tower_id, floor_id } = req.params;
+      const { tower_id, floor_name } = req.params;
 
       const tower = await Tower.findOne({
         where: { id: tower_id }
@@ -253,7 +253,7 @@ const appController = {
       }
 
       const floor = await Floor.findOne({
-        where: { id: floor_id },
+        where: { name: floor_name, tower_id: tower_id },
         include: [
           {
             model: Unit,
@@ -282,14 +282,16 @@ const appController = {
       
       // Calculate statistics
       const stats = {
-        unit_count: floor.units.length,
+        total_units: floor.units.length,
         booked_units: 0,
         available_units: 0,
         unit_types: {},
         unit_areas: {}
       };
       
-      floor.units.forEach(unit => {        
+      floor.units.forEach(unit => {
+        stats.total_units++;
+        
         // Count booked vs available units
         if (unit.unit_status.name.toLowerCase() === 'booked') {
           stats.booked_units++;
@@ -313,7 +315,7 @@ const appController = {
         }
       });
 
-      // Add stats to tower data
+      // Add stats to floor data
       const floorData = {
         ...floor.toJSON(),
         stats
@@ -589,7 +591,7 @@ const appController = {
       });
 
       // Optionally, update the unit status to 'booked'
-      await unit.update({ status: 3 });
+      // await unit.update({ status: 3 });
 
       return res.status(201).json({ message: 'Booking successful', booking });
     } catch (error) {

@@ -7,6 +7,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      project_id:{
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        comment: 'Reference to the project id'
+      },
       name: {
         type: Sequelize.STRING,
         allowNull: false
@@ -20,6 +25,11 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
         comment: 'Area in square feet'
+      },
+      cost: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        comment: 'Cost in square feet'
       },
       vr_url: {
         type: Sequelize.TEXT,
@@ -50,8 +60,8 @@ module.exports = {
     });
 
     // Add indexes
+    await queryInterface.addIndex('unit_plans', ['project_id']);
     await queryInterface.addIndex('unit_plans', ['type']);
-    await queryInterface.addIndex('unit_plans', ['status']);
   },
 
   down: async (queryInterface, Sequelize) => {

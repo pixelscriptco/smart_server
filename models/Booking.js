@@ -24,22 +24,22 @@ module.exports = (sequelize, DataTypes) => {
     first_name: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Name of the customer'
+      comment: 'First Name of the customer'
     },
     last_name: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Name of the customer'
+      comment: 'Last Name of the customer'
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Name of the customer'
+      comment: 'email of the customer'
     },
     mobile: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Name of the customer'
+      comment: 'Mobile of the customer'
     },
     project_id: {
       type: DataTypes.INTEGER,
