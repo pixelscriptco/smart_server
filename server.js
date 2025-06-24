@@ -5,7 +5,11 @@ const config = require('./config/config');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://admin.proptour.live'], // add other domains if needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true // only if you're using cookies/auth headers
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
