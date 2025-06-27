@@ -57,6 +57,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'pending',
       comment: 'Booking status'
     },
+    type: {
+      type: DataTypes.ENUM('hot', 'warm', 'cold'),
+      allowNull: true,
+      comment: 'Booking type'
+    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: false,

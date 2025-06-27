@@ -24,7 +24,7 @@ module.exports = {
           isEmail: true
         }
       },
-      mobile_number: {
+      mobile: {
         type: Sequelize.STRING,
         allowNull: false
       },
@@ -53,6 +53,10 @@ module.exports = {
         defaultValue: 'pending',
         allowNull: false
       },
+      type: {
+        type: Sequelize.ENUM('hot', 'warm', 'cold'),
+        allowNull: true
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -67,7 +71,7 @@ module.exports = {
 
     // Add indexes for better query performance
     await queryInterface.addIndex('bookings', ['email']);
-    await queryInterface.addIndex('bookings', ['mobile_number']);
+    await queryInterface.addIndex('bookings', ['mobile']);
     await queryInterface.addIndex('bookings', ['unit_id']);
     await queryInterface.addIndex('bookings', ['project_id']);
     await queryInterface.addIndex('bookings', ['status']);

@@ -3,3 +3,5 @@
  
  //run seeder file
  npx sequelize-cli db:seed --seed 20240320_unit_status_seeder.js
+
+  npx sequelize-cli db:seed --seed 20240320_super_admin_seeder.js

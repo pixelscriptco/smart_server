@@ -1,4 +1,4 @@
-const { Building, Floorplan, Unit, Floor, UnitStatus, Project, UnitPlan } = require('../models');
+const { Building, Floorplan, Unit, Floor, UnitStatus, Project, UnitPlan,Booking } = require('../models');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
@@ -248,11 +248,16 @@ const unitController = {
           {
             model: Floor,
             as: 'floor',
-            attributes: ['id', 'name', 'level']
+            attributes: ['id', 'name']
+          },
+          {
+            model: UnitPlan,
+            as: 'unit_plans',
+            attributes: ['id', 'type', 'area', 'vr_url', 'plan','cost']
           },
           {
             model: UnitStatus,
-            as: 'status',
+            as: 'unit_status',
             attributes: ['id', 'name', 'color']
           }
         ]
@@ -436,6 +441,51 @@ const unitController = {
         message: 'Error creating unit plan',
         error: error.message
       });
+    }
+  },
+
+  async getEnquiries(req, res){
+    try {
+      const { page = 1, limit = 10, search = '' } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const where = {};
+      if (search) {
+        const { Op } = require('sequelize');
+        where[Op.or] = [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+          { message: { [Op.iLike]: `%${search}%` } }
+        ];
+      }
+      const { count, rows } = await Booking.findAndCountAll({
+        where,
+        order: [['created_at', 'DESC']],
+        offset,
+        limit: parseInt(limit),
+        include: [
+          {
+            model: Project,
+            as: 'project',
+            attributes: ['id', 'name']
+          },
+          {
+            model: Unit,
+            as: 'unit',
+            attributes: ['id', 'name']
+          }
+        ]
+      });
+      
+      res.json({
+        success: true,
+        enquiries: rows,
+        total: count,
+        page: parseInt(page),
+        totalPages: Math.ceil(count / limit)
+      });
+    } catch (error) {
+      console.error('Error fetching enquiries:', error);
+      res.status(500).json({ success: false, message: 'Error fetching enquiries' });
     }
   }
 };

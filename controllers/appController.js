@@ -353,16 +353,33 @@ const appController = {
       if (!tower) {
         return res.status(404).json({ message: 'Tower not found' });
       }
-      console.log(tower.id);
-      
+
       const floor = await Floor.findOne({
-        where: { tower_id:tower.id, name: 'Floor-'+ floor_name },
+        where: { tower_id: tower.id, name: 'Floor-' + floor_name },
         include: [
           {
             model: FloorPlan,
             as: 'floor_plan',
             required: false,
-          }]
+          },
+          {
+            model: Unit,
+            as: 'units',
+            required: false,
+            include: [
+              {
+                model: UnitPlan,
+                as: 'unit_plans',
+                required: false,
+              },
+              {
+                model: UnitStatus,
+                as: 'unit_status',
+                required: false,
+              }
+            ]
+          }
+        ]
       });
 
       if (!floor) {

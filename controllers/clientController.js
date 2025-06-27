@@ -473,7 +473,7 @@ exports.getUnitDetails = async (req, res) => {
   }
 };
 
-exports.updateStatus = async(req, res) => {
+exports.updateUnitStaus = async(req, res) => {
   const { unit_id } = req.params;
   const { status } = req.body;
   if (![1,2,3].includes(status)) {

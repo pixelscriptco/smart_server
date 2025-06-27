@@ -5,11 +5,7 @@ const config = require('./config/config');
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: ['http://admin.proptour.live'], // add other domains if needed
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true // only if you're using cookies/auth headers
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -20,6 +16,7 @@ app.use('/api/buildings', require('./routes/buildingRoutes'));
 app.use('/api/towers', require('./routes/towerRoutes'));
 app.use('/api/floors', require('./routes/floorsRoutes'));
 app.use('/api/units', require('./routes/unitRoutes'));
+app.use('/api/enquiries', require('./routes/enquiryRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/client', require('./routes/clientRoutes'));
 
