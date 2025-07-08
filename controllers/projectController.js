@@ -210,7 +210,7 @@ const projectController = {
         // If new logo is uploaded, delete old one from S3
         if (req.file && project.logo) {
           const oldLogoKey = project.logo.split('/').pop();
-          await s3.deleteObject({
+          await s3Client.deleteObject({
             Bucket: config.aws.bucketName,
             Key: `projects/logos/${oldLogoKey}`
           }).promise();
@@ -241,6 +241,41 @@ const projectController = {
     }
   },
 
+  // Update project status only
+  async updateProjectStatus(req, res) {
+    try {
+      const { status } = req.body;
+      const projectId = req.params.project_id;
+      
+      const project = await Project.findByPk(projectId);
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+      }
+
+      // Update only the status
+      await project.update({
+        status: status
+      });
+
+      res.status(200).json({
+        success: true,
+        data: project,
+        message: 'Project status updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating project status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating project status',
+        error: error.message
+      });
+    }
+  },
+
   // Delete project
   async deleteProject(req, res) {
     try {
@@ -256,7 +291,7 @@ const projectController = {
       // Delete logo from S3 if exists
       if (project.logo) {
         const logoKey = project.logo.split('/').pop();
-        await s3.deleteObject({
+        await s3Client.deleteObject({
           Bucket: config.aws.bucketName,
           Key: `projects/logos/${logoKey}`
         }).promise();

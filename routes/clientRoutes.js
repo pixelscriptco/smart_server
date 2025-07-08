@@ -32,4 +32,11 @@ router.get('/tower/:tower_id/floors', clientController.getFloors);
 router.get('/bookings', clientController.listBookings);
 router.put('/bookings/:booking_id/status', clientController.updateBookingStatus);
 
+router.patch('/units/:unit_id/cost', clientController.updatePrice);
+
+
+router.get('/:project_id/updates', clientController.getProjectUpdates);
+router.post('/:project_id/updates', clientController.addProjectUpdates);
+router.delete('/:project_id/updates/:update_id', clientController.deleteProjectUpdates);
+
 module.exports = router; 

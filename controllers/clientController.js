@@ -1,7 +1,46 @@
-const { Project, Unit,Building,Tower, User,Booking,UnitPlan,Floor,UnitStatus } = require('../models');
+const { Project, Unit,Building,Tower, User,Booking,UnitPlan,Floor,UnitStatus,ProjectUpdate } = require('../models');
 const { Op, where } = require('sequelize');
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const { S3Client } = require('@aws-sdk/client-s3');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const config = require('../config/config');
 
+// Configure AWS S3 Client
+const s3Client = new S3Client({
+  region: config.aws.region,
+  credentials: {
+    accessKeyId: config.aws.accessKeyId,
+    secretAccessKey: config.aws.secretAccessKey
+  }
+});
+
+// Configure multer for S3 upload
+const uploadImages = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.aws.bucketName,
+    // acl: 'public-read',
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `updates/${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    // Accept images and videos only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|mp4|mov|webm|avi|mkv)$/i)) {
+      return cb(new Error('Only image and video files are allowed!'), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 20 * 1024 * 1024 // 20MB limit
+  }
+}).single('file');
 // Login user
 exports.login = async(req, res) => {
   try {
@@ -225,7 +264,6 @@ exports.getProject = async(req, res) => {
       order: [['created_at', 'DESC']]
     });
 
-
     // Merge all towers from all buildings into one array
     const allTowers = project.buildings.flatMap(building => building.towers);
 
@@ -315,7 +353,7 @@ exports.listUnits = async (req, res) => {
   try {
     const { project_id } = req.params;
     const user_id = req.user.id;
-    const { status, search } = req.query;
+    const { floor_id,status, search } = req.query;
 
     // Verify project belongs to user
     const project = await Project.findOne({
@@ -333,10 +371,15 @@ exports.listUnits = async (req, res) => {
     }
 
     let whereClause = { };
+    console.log(status);
     
     // Add status filter if provided
-    if (status) {
-      whereClause.status = status;
+    if (status && status != '0') {
+      whereClause.status = parseInt(status);
+    }
+    
+    if (floor_id) {
+      whereClause.floor_id = floor_id;
     }
 
     // Add search filter if provided
@@ -589,3 +632,143 @@ exports.getFloors = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching floors', error: error.message });
   }
 };
+
+exports.updatePrice = async (req, res) => {
+  try {
+    const { unit_id } = req.params;
+    const { cost } = req.body;
+    const user_id = req.user.id;
+
+    if (!cost) {
+      return res.status(400).json({ success: false, message: 'Cost is required' });
+    }
+
+    // Verify unit belongs to user's project
+    const unit = await Unit.findOne({
+      where: { id: unit_id }
+    });
+
+    if (!unit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Unit not found or unauthorized'
+      });
+    }
+
+    unit.cost = cost;
+    await unit.save();
+
+    res.json({
+      success: true,
+      message: 'Unit cost updated successfully',
+      data: unit
+    });
+  } catch (error) {
+    console.error('Error updating unit cost:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating unit cost',
+      error: error.message
+    });
+  }
+};
+
+exports.getProjectUpdates = async(req,res)=>{
+  const projectId = req.params.project_id;
+  if (!projectId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Project ID is required'
+    });
+  }
+  try {
+    const updates = await ProjectUpdate.findAll({
+      where: { project_id:projectId }
+    })
+
+    res.status(200).json({
+      success: true,
+      updates: updates
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching updates',
+      error: error.message
+    });
+  }
+},
+
+exports.addProjectUpdates = async(req,res)=>{
+  const projectId = req.params.project_id;
+  if (!projectId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Project ID is required'
+    });
+  }
+  try {
+    uploadImages(req, res, async function(err) {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err
+        });
+      }
+
+      const { name, status } = req.body;
+      const project = await Project.findByPk(projectId);
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+      }
+
+      const projectUpdate = await ProjectUpdate.create({
+        name,
+        project_id:req.params.project_id,
+        image_url:req.file ? req.file.location : null,
+        status
+      })
+
+      res.status(201).json({
+        success: true,
+        data: projectUpdate,
+        message: 'Project Updates created successfully'
+      });
+      
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching updates',
+      error: error.message
+    });
+  }
+},
+
+exports.deleteProjectUpdates = async(req,res)=>{
+  if(!req.params.project_id || !req.params.update_id){
+    return res.status(400).json({
+      success: false,
+      message: 'Project ID and Update ID is required'
+    });
+  }
+
+  try {
+    const projectUpdate = await ProjectUpdate.findByPk(req.params.update_id);
+    if(projectUpdate){
+      projectUpdate.active = false;
+      projectUpdate.save();
+    }
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting updates',
+      error: error.message
+    });
+  }
+}

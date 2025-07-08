@@ -1,5 +1,6 @@
  run migration
  npx sequelize-cli db:migrate 
+ npx sequelize-cli db:migrate --to 20240608000001_add_direction_to_tower_plans.js
  
  //run seeder file
  npx sequelize-cli db:seed --seed 20240320_unit_status_seeder.js

@@ -40,6 +40,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Reference to the plan this unit belongs to'
     },
+    cost: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Cost of the unit'
+    },
     status: {
       type: DataTypes.INTEGER,
       allowNull: false,

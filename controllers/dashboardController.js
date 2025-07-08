@@ -1,4 +1,4 @@
-const { Project, User } = require('../models');
+const { Project, User, Booking } = require('../models');
 
 exports.getStats = async (req, res) => {
   try {
@@ -14,6 +14,12 @@ exports.getStats = async (req, res) => {
     const totalCustomers = await User.count({
       where: { type: 'customer' }
     });
+
+    // Get total booking count
+    const totalEnquiries = await Booking.count();
+    const pendingEnquiries = await Booking.count({status:'pending'});
+    const confirmedEnquiries = await Booking.count({status:'confirmed'});
+    const cancelledEnquiries = await Booking.count({status:'cancelled'});
 
     // Get active customers count (customers with active projects)
     const activeCustomers = await User.count({
@@ -35,6 +41,12 @@ exports.getStats = async (req, res) => {
         customers: {
           total: totalCustomers,
           active: activeCustomers
+        },
+        enquiries:{
+          total: totalEnquiries,
+          pending: pendingEnquiries,
+          confirmed: confirmedEnquiries,
+          cancelled: cancelledEnquiries
         }
       }
     });

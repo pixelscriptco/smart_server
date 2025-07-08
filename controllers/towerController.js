@@ -87,7 +87,7 @@ const towerController = {
   // Get tower by ID
   async getTowerById(req, res) {
     try {
-      const order = req.params.order??0;
+      const order = req.query.order??0;
       
       const tower = await Tower.findByPk(req.params.id, {
         include: [
@@ -102,7 +102,6 @@ const towerController = {
           }
         ]
       });
-      console.log(tower);
       
       if (!tower) {
         return res.status(404).json({
@@ -137,9 +136,9 @@ const towerController = {
           });
         }
 
-        const { name, tower_id, image, svg, floors, order } = req.body;
+        const { name, tower_id, image, svg, floors, order, direction } = req.body;
 
-        if (!name || !req.files?.image || !req.files?.svg || !floors) {
+        if (!name || !req.files?.image || !req.files?.svg || !floors || !direction ) {
           return res.status(400).json({
             success: false,
             message: 'Missing required fields: name, image, svg, and floors are required'
@@ -163,7 +162,8 @@ const towerController = {
           tower_id,
           image_url,
           svg_url,
-          order
+          order,
+          direction
         });
 
         const floor_count = tower.floor_count;

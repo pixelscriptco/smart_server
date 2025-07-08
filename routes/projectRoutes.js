@@ -10,6 +10,7 @@ router.get('/companies', auth, projectController.listCompanies);
 
 // Project routes
 router.get('/:project_id', auth, projectController.getProjectById);
+router.patch('/status/:project_id', auth, projectController.updateProjectStatus);
 router.put('/:project_id', auth, projectController.updateProject);
 router.delete('/:project_id', auth, projectController.deleteProject);
 

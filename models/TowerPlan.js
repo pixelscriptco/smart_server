@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: 'To show correct order when click on next'
     },
+    direction: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Direction of the tower plan (e.g., North, South, etc.)'
+    },
     status: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

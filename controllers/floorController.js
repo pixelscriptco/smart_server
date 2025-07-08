@@ -496,7 +496,8 @@ const floorController = {
       }
 
       await unit.update({
-        unit_plan_id: unit_plan_id
+        unit_plan_id: unit_plan_id,
+        cost: unitPlan.cost
       });
 
       res.status(200).json({
