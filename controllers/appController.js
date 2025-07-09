@@ -1,5 +1,5 @@
 const { where } = require('sequelize');
-const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan } = require('../models');
+const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate } = require('../models');
 
 const appController = {
   async getProjectBySlug(req, res) {
@@ -14,6 +14,28 @@ const appController = {
       }
 
       res.json(project);  
+    } catch (error) {
+      console.error('Error getting project:', error);
+      res.status(500).json({ message: 'Error getting project' });
+    }
+  },
+
+  async getProjectUpdatesBySlug(req, res){
+    try {
+      const { slug } = req.params;
+      const project = await Project.findOne({
+        where: { url: slug }
+      }); 
+
+      if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      $updates = await ProjectUpdate.findAll({
+        where: { project_id: project.id }
+      })
+
+      res.json({'updates':$updates});  
     } catch (error) {
       console.error('Error getting project:', error);
       res.status(500).json({ message: 'Error getting project' });
