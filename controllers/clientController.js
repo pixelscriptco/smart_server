@@ -554,7 +554,7 @@ exports.listBookings = async (req, res) => {
           model: Project,
           as: 'project',
           attributes: ['name', 'description'],
-          where: { user_id }
+          // where: { user_id }
         },
         {
           model: Unit,

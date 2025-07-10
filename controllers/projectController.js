@@ -14,23 +14,28 @@ const s3Client = new S3Client({
   }
 });
 
-// Configure multer for S3 upload
+// Configure multer for S3 upload for both logo and qr_code
 const upload = multer({
   storage: multerS3({
     s3: s3Client,
     bucket: config.aws.bucketName,
-    // acl: 'public-read',
     metadata: function (req, file, cb) {
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, `logo/${uniqueSuffix}${path.extname(file.originalname)}`);
+      if (file.fieldname === 'logo') {
+        cb(null, `logo/${uniqueSuffix}${path.extname(file.originalname)}`);
+      } else if (file.fieldname === 'qr_code') {
+        cb(null, `qr_code/${uniqueSuffix}${path.extname(file.originalname)}`);
+      } else {
+        cb(null, `${file.fieldname}/${uniqueSuffix}${path.extname(file.originalname)}`);
+      }
     }
   }),
   fileFilter: (req, file, cb) => {
     // Accept images only
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|svg)$/)) {
       return cb(new Error('Only image files are allowed!'), false);
     }
     cb(null, true);
@@ -38,7 +43,10 @@ const upload = multer({
   limits: {
     fileSize: 20 * 1024 * 1024 // 20MB limit
   }
-}).single('logo');
+}).fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'qr_code', maxCount: 1 }
+]);
 
 // Configure multer for S3 upload
 const uploadImages = multer({
@@ -79,13 +87,15 @@ const projectController = {
           });
         }
 
-        const { name, description, company_id, project_url } = req.body;
+        const { name, description, company_id, project_url, registration_number } = req.body;
+        const logoFile = req.files && req.files.logo && req.files.logo[0];
+        const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
 
         if (!name || !company_id) {
           return res.status(400).json({ message: 'Missing required fields.' });
         }
         
-        // Create project with logo URL from S3
+        // Create project with logo and qr_code URL from S3
         const project = await Project.create({
           name,
           description,
@@ -93,7 +103,9 @@ const projectController = {
           user_id: company_id,
           url: name.replace(/\s+/g, ''),
           project_url: project_url,
-          logo: req.file ? req.file.location : null 
+          logo: logoFile ? logoFile.location : null,
+          registration_number: registration_number || null,
+          qr_code: qrCodeFile ? qrCodeFile.location : null
         });
 
         res.status(201).json({
@@ -197,7 +209,9 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status } = req.body;
+        const { name, url, project_url, status, registration_number } = req.body;
+        const logoFile = req.files && req.files.logo && req.files.logo[0];
+        const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const project = await Project.findByPk(req.params.id);
 
         if (!project) {
@@ -208,11 +222,19 @@ const projectController = {
         }
 
         // If new logo is uploaded, delete old one from S3
-        if (req.file && project.logo) {
+        if (logoFile && project.logo) {
           const oldLogoKey = project.logo.split('/').pop();
           await s3Client.deleteObject({
             Bucket: config.aws.bucketName,
             Key: `projects/logos/${oldLogoKey}`
+          }).promise();
+        }
+        // If new qr_code is uploaded, delete old one from S3
+        if (qrCodeFile && project.qr_code) {
+          const oldQrKey = project.qr_code.split('/').pop();
+          await s3Client.deleteObject({
+            Bucket: config.aws.bucketName,
+            Key: `qr_code/${oldQrKey}`
           }).promise();
         }
 
@@ -222,7 +244,9 @@ const projectController = {
           url: url || project.url,
           project_url: project_url || project.project_url,
           status: status || project.status,
-          logo: req.file ? req.file.location : project.logo
+          logo: logoFile ? logoFile.location : project.logo,
+          registration_number: registration_number || project.registration_number,
+          qr_code: qrCodeFile ? qrCodeFile.location : project.qr_code
         });
 
         res.status(200).json({

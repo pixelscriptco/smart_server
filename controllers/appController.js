@@ -1,5 +1,5 @@
 const { where } = require('sequelize');
-const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate } = require('../models');
+const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking } = require('../models');
 
 const appController = {
   async getProjectBySlug(req, res) {
@@ -619,14 +619,15 @@ const appController = {
       }
 
       // Create the booking
-      const booking = await require('../models').Booking.create({
+      const booking = await Booking.create({
         email,
         first_name: firstName,
         last_name: lastName,
         mobile,
         unit_id: flatId,
         project_id:project.id,
-        status: 'pending'
+        status: 'pending',
+        type:'hot'
       });
 
       // Optionally, update the unit status to 'booked'

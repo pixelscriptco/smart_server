@@ -51,6 +51,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'URL to project vr video'
     },
+    registration_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Registration number of the project'
+    },
+    qr_code: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Path to QR code image or QR code string'
+    },
     status: {
       type: DataTypes.TINYINT,
       allowNull: false,
