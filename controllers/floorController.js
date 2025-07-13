@@ -470,7 +470,7 @@ const floorController = {
 
   async mapFloorUnit(req, res) {
     try {
-      const { unit_id, unit_plan_id } = req.body;
+      const { unit_id, unit_plan_id,custom_name } = req.body;
 
       if (!unit_id || !unit_plan_id) {
         return res.status(400).json({
@@ -497,7 +497,8 @@ const floorController = {
 
       await unit.update({
         unit_plan_id: unit_plan_id,
-        cost: unitPlan.cost
+        cost: unitPlan.cost,
+        slug: custom_name?custom_name:''
       });
 
       res.status(200).json({

@@ -521,6 +521,56 @@ const userController = {
     }
   },
 
+  // Create a new client (customer)
+  async createClient(req, res) {
+    try {
+      const { name, email, mobile, password, company, status } = req.body;
+
+      // Check if user already exists
+      const existingUser = await db.User.findOne({
+        where: {
+          [db.Sequelize.Op.or]: [
+            { email },
+            { mobile }
+          ]
+        }
+      });
+      if (existingUser) {
+        return res.status(400).json({
+          message: 'User with this email or mobile already exists'
+        });
+      }
+
+      // Create new client (type: customer)
+      const user = await db.User.create({
+        name,
+        email,
+        mobile,
+        password,
+        company,
+        status: status || 'active',
+        type: 'customer'
+      });
+
+      res.status(201).json({
+        message: 'Client created successfully',
+        client: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          mobile: user.mobile,
+          company: user.company,
+          status: user.status
+        }
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: 'Error creating client',
+        error: error.message
+      });
+    }
+  },
+
   // Logout user
   async logout(req, res) {
     try {

@@ -19,7 +19,35 @@ const appController = {
       res.status(500).json({ message: 'Error getting project' });
     }
   },
+  async getProjectDetailsBySlug(req, res){
+    try {
+      const { slug } = req.params;
+      const project = await Project.findOne({
+        where: { url: slug },
+        attributes: ['project_url', 'description'],
+        include: [
+          {
+            model: Amenity,
+            as: 'amenities',
+            required: false,
+            where: { active: 1 },
+            order: [
+              ['id', 'ASC']
+            ]
+          }
+        ]
+      }); 
 
+      if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      res.json(project);
+    } catch (error) {
+      console.error('Error getting project:', error);
+      res.status(500).json({ message: 'Error getting project' });
+    }
+  },
   async getProjectUpdatesBySlug(req, res){
     try {
       const { slug } = req.params;

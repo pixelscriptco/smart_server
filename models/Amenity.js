@@ -4,9 +4,9 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Amenity extends Model {
     static associate(models) {
-      Amenity.belongsTo(models.Tower, {
-        foreignKey: 'tower_id',
-        as: 'tower'
+      Amenity.belongsTo(models.Project, {
+        foreignKey: 'project_id',
+        as: 'project'
       });
     }
   }
@@ -22,10 +22,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: 'Name of the amenity'
     },
-    tower_id: {
+    project_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      comment: 'Reference to the tower this amenity belongs to'
+      comment: 'Reference to the project this amenity belongs to'
     },
     image: {
       type: DataTypes.TEXT,
@@ -61,7 +61,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     indexes: [
       {
-        fields: ['tower_id']
+        fields: ['project_id']
       }
     ]
   });

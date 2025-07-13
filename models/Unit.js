@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: 'Name or number of the unit'
     },
+    slug: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Slug of the unit'
+    },
     floor_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

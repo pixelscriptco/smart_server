@@ -20,5 +20,10 @@ router.delete('/:project_id/updates/:update_id', auth, projectController.deleteP
 router.get('/:project_id/towers', auth, projectController.getTowersByProjectId);
 router.get('/:id/plans', auth,projectController.getAllPlans);
 
+// amenities
+router.get('/:id/amenities', auth,projectController.getProjectAmenities);
+router.post('/:id/amenities', auth,projectController.createProjectAmenity);
+router.put('/:id/amenities/:amenityId', auth,projectController.updateProjectAmenity);
+router.delete('/amenities/:amenityId', auth,projectController.deleteProjectAmenity);
 
 module.exports = router; 

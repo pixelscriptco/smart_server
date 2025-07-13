@@ -532,7 +532,7 @@ exports.updateUnitStaus = async(req, res) => {
 // List all bookings with pagination and search
 exports.listBookings = async (req, res) => {
   const user_id = req.user.id;
-  const { page, limit, search,status } = req.query;
+  const { page, limit, search,status,type } = req.query;
   const offset = (parseInt(page) - 1) * parseInt(limit);
   const whereClause = {};
 
@@ -546,6 +546,13 @@ exports.listBookings = async (req, res) => {
     ];
   }
 
+  if (status) {
+    whereClause.status = status;
+  }
+  if (req.query.type) {
+    whereClause.type = req.query.type;
+  }
+
   try {
     const { count, rows } = await Booking.findAndCountAll({
       where: whereClause,
@@ -554,12 +561,12 @@ exports.listBookings = async (req, res) => {
           model: Project,
           as: 'project',
           attributes: ['name', 'description'],
-          // where: { user_id }
+          where: { user_id }, // Only include bookings for projects owned by this user
         },
         {
           model: Unit,
           as: 'unit',
-          attributes: ['id', 'name']
+          attributes: ['id', 'name','slug']
         }
       ],
       order: [['created_at', 'DESC']],
@@ -588,7 +595,7 @@ exports.updateBookingStatus = async (req, res) => {
   const user_id = req.user.id;
   const { booking_id } = req.params;
   const { status } = req.body;
-  if (!['confirmed', 'cancelled'].includes(status)) {
+  if (!['pending','confirmed', 'cancelled'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status' });
   }
   try {

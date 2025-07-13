@@ -1,4 +1,4 @@
-const { Project, Tower, Building,UnitPlan,ProjectUpdate, User } = require('../models');
+const { Project, Tower, Building,UnitPlan,ProjectUpdate, User, Amenity } = require('../models');
 const path = require('path');
 const { S3Client } = require('@aws-sdk/client-s3');
 const multer = require('multer');
@@ -73,6 +73,33 @@ const uploadImages = multer({
     fileSize: 20 * 1024 * 1024 // 20MB limit
   }
 }).single('image');
+
+// Configure multer for S3 upload
+const uploadToS3 = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.aws.bucketName,
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileType = file.fieldname === 'image' ? 'jpg' : 'svg';
+      cb(null, `projects/${uniqueSuffix}.${fileType}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 20 * 1024 * 1024 // 20MB limit
+  }
+}).fields([
+  { name: 'image', maxCount: 1 }
+]);
 
 const projectController = {
   // Register a new Project
@@ -517,7 +544,148 @@ const projectController = {
         error: error.message
       });
     }
-  }
+  },
+  // Get project amenities
+  async getProjectAmenities(req, res) {
+    try {
+      const project = await Project.findOne({
+        where: { id: req.params.id },
+      });
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+      }
+
+      const amenities = await Amenity.findAll({
+        where: { project_id: req.params.id },
+      });
+
+      res.status(200).json({
+        success: true,
+        amenities: amenities
+      });
+    } catch (error) {
+      console.error('Error fetching project amenities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching project amenities',
+        error: error.message
+      });
+    }
+  },
+
+  // Create project amenity
+  async createProjectAmenity(req, res) {
+    try {
+      uploadToS3(req, res, async function(err) {
+        if (err) {
+          console.error('Upload error:', err);
+          return res.status(400).json({
+            success: false,
+            message: err.message
+          });
+        }
+
+        const { name, vr_url } = req.body;
+        console.log(req.files.image[0].location);
+        
+        const image = req.files.image[0].location;
+        const project = await Project.findByPk(req.params.id);
+
+        if (!project) {
+          return res.status(404).json({
+            success: false,
+            message: 'Project not found'  
+          });
+        }
+
+        const amenity = await Amenity.create({
+          name,
+          image,
+          vr_url,
+          project_id: project.id
+        });
+
+        res.status(200).json({
+          success: true,
+          amenities: amenity
+        });
+      });
+    } catch (error) {
+      console.error('Error fetching project amenities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching project amenities',
+        error: error.message
+      });
+    }
+  },  
+
+  // Update project amenity
+  async updateProjectAmenity(req, res) {
+    try {
+      const { name, vr_url } = req.body;
+      const amenity = await Amenity.findByPk(req.params.amenityId);
+
+      if (!amenity) {
+        return res.status(404).json({
+          success: false,
+          message: 'Amenity not found'
+        });
+      } 
+
+      await amenity.update({
+        name,
+        vr_url
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Amenity updated successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error updating project amenity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating project amenity',
+        error: error.message
+      });
+    }
+  },
+
+  // Delete project amenity
+  async deleteProjectAmenity(req, res) {
+    try {
+      const amenity = await Amenity.findByPk(req.params.amenityId);
+
+      if (!amenity) {
+        return res.status(404).json({
+          success: false,
+          message: 'Amenity not found'
+        });
+      }
+
+      await amenity.update({
+        active: 0
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Amenity deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting project amenity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error deleting project amenity',
+        error: error.message
+      });
+    }
+  },
 };
 
 module.exports = projectController; 

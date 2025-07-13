@@ -8,10 +8,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'building_id',
         as: 'building'
       });
-      Tower.hasMany(models.Amenity, {
-        foreignKey: 'tower_id',
-        as: 'amenities'
-      });
       Tower.hasMany(models.TowerPlan, {
         foreignKey: 'tower_id',
         as: 'tower_plans'
