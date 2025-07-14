@@ -4,7 +4,7 @@ const enquiryController = {
   // list a new enquiries
   async getEnquiries(req, res){
     try {
-      const { page = 1, limit = 10, search = '' } = req.query;
+      const { page = 1, limit = 10, search = '',status} = req.query;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const where = {};
       if (search) {
@@ -14,6 +14,9 @@ const enquiryController = {
           { email: { [Op.iLike]: `%${search}%` } },
           { message: { [Op.iLike]: `%${search}%` } }
         ];
+      }
+      if (status) {
+        where.status = status;
       }
       const { count, rows } = await Booking.findAndCountAll({
         where,
