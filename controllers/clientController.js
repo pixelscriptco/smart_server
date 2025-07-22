@@ -704,7 +704,7 @@ exports.getProjectUpdates = async(req,res)=>{
       error: error.message
     });
   }
-},
+};
 
 exports.addProjectUpdates = async(req,res)=>{
   const projectId = req.params.project_id;
@@ -754,7 +754,7 @@ exports.addProjectUpdates = async(req,res)=>{
       error: error.message
     });
   }
-},
+};
 
 exports.deleteProjectUpdates = async(req,res)=>{
   if(!req.params.project_id || !req.params.update_id){
@@ -778,4 +778,4 @@ exports.deleteProjectUpdates = async(req,res)=>{
       error: error.message
     });
   }
-}
+};

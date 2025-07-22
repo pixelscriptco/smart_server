@@ -34,6 +34,15 @@ const appController = {
             order: [
               ['id', 'ASC']
             ]
+          },
+          {
+            model: ProjectUpdate,
+            as: 'project_updates',
+            required: false,
+            where: { active: 1 },
+            order: [
+              ['id', 'ASC']
+            ]
           }
         ]
       }); 

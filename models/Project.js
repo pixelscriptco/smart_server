@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'project_id',
         as: 'amenities'
       });
+      Project.hasMany(models.ProjectUpdate, {
+        foreignKey: 'project_id',
+        as: 'project_updates'
+      });
       Project.belongsTo(models.User, { foreignKey: 'user_id' });
     }
   }
