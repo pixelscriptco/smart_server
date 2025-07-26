@@ -491,10 +491,10 @@ const userController = {
 
   async updateClients(req, res){
     const { id } = req.params;
-    const { status } = req.body;
+    const data = req.body;
 
     // Validate status
-    if (!['active', 'inactive'].includes(status)) {
+    if (!['active', 'inactive'].includes(data.status)) {
       return res.status(400).json({ message: 'Invalid status value' });
     }
 
@@ -505,12 +505,11 @@ const userController = {
         return res.status(404).json({ message: 'user not found' });
       }
 
-      user.status = status;
-      await user.save();
+      await user.update(data);
 
       res.status(200).json({
         success: true,
-        message: `Status updated to ${status}`,
+        message: `updated`,
         data: user
       });
     } catch (error) {
