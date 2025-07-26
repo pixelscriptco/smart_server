@@ -236,10 +236,10 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status, registration_number } = req.body;
+        const { name, url, project_url, status, registration_number,description } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
-        const project = await Project.findByPk(req.params.id);
+        const project = await Project.findByPk(req.params.project_id);
 
         if (!project) {
           return res.status(404).json({
@@ -269,6 +269,7 @@ const projectController = {
         await project.update({
           name: name || project.name,
           url: url || project.url,
+          description: description || project.description,
           project_url: project_url || project.project_url,
           status: status || project.status,
           logo: logoFile ? logoFile.location : project.logo,
