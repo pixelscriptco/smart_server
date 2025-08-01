@@ -429,6 +429,28 @@ const userController = {
     }
   },
 
+  // Reset password
+  async updateClientPassword(req, res) {
+    try {
+      const {Id} = req.params;
+      const { password } = req.body;
+      const user = await db.User.findOne({
+        where: {id: Id}
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      user.password = password;
+      await user.save();
+
+      res.json({ message: 'Password reset successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error resetting password', error: error.message });
+    }
+  },
+
   // Update last login
   async updateLastLogin(req, res, next) {
     try {

@@ -1,4 +1,4 @@
-const { Building, Floorplan, Unit, Floor, UnitStatus, Project, UnitPlan,Booking } = require('../models');
+const { Building, Floorplan, Unit, Floor, UnitStatus, Project, UnitPlan,Booking, BalconyImage } = require('../models');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
@@ -27,7 +27,7 @@ const uploadToS3 = multer({
     },
     key: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const fileType = file.fieldname === 'image' ? 'jpg' : 'svg';
+      const fileType = file.fieldname === 'image'? 'jpg' : 'svg';
       cb(null, `units/${uniqueSuffix}.${fileType}`);
     }
   }),
@@ -36,14 +36,20 @@ const uploadToS3 = multer({
       if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
         return cb(new Error('Only image files are allowed!'), false);
       }
+    } else if (file.fieldname === 'svg') {
+      if (!file.originalname.match(/\.svg$/)) {
+        return cb(new Error('Only SVG files are allowed!'), false);
+      }
     }
+
     cb(null, true);
   },
   limits: {
-    fileSize: 30 * 1024 * 1024 // 20MB limit
+    fileSize: 30 * 1024 * 1024 // 30MB limit
   }
 }).fields([
-  { name: 'image', maxCount: 1 }
+  { name: 'image', maxCount: 1 },
+  { name: 'svg', maxCount: 1 }
 ]);
 
 const unitController = {
@@ -240,6 +246,27 @@ const unitController = {
     }
   },
 
+  // Get all units
+  async getAllUnitPlans(req, res) {
+    try {
+      const unit_plans = await UnitPlan.findAll({
+        where:{status:1},
+        order: [['created_at', 'DESC']]
+      });
+
+      res.status(200).json({
+        success: true,
+        data: unit_plans
+      });
+    } catch (error) {
+      console.error('Error fetching unit plans:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching unit plans',
+        error: error.message
+      });
+    }
+  },
   // Get unit by ID
   async getUnitById(req, res) {
     try {
@@ -396,10 +423,8 @@ const unitController = {
             message: err.message
           });
         }
-        console.log(req.body);
         
-        const { name, project_id, image, area, cost, type, vr_url } = req.body;
-
+        const { name, project_id, area, cost, type, vr_url, balcony_entries } = req.body;
 
         if (!name || !req.files?.image || !area || !cost || !type) {
           return res.status(400).json({
@@ -418,7 +443,7 @@ const unitController = {
         const plan = req.files.image[0].location;
 
         // Create unitplan record
-        await UnitPlan.create({
+        const unitPlan = await UnitPlan.create({
           name,
           project_id,
           plan,
@@ -428,6 +453,20 @@ const unitController = {
           type
         });
 
+        // If balcony entries are provided, store them
+        if (req.body.balcony_entries) {
+          const balcony_entries = JSON.parse(req.body.balcony_entries);
+          if (balcony_entries.length > 0) {
+            balcony_entries.forEach(async (entry) => {
+              await BalconyImage.create({
+                unit_plan_id: unitPlan.id,
+                image_url: null, // Placeholder since we're not uploading actual images
+                image_type: entry.type || 'normal',
+                name: entry.name || null
+              });
+            });
+          }
+        }
 
         res.status(200).json({
           success: true,
@@ -450,7 +489,7 @@ const unitController = {
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const where = {};
       if (search) {
-        const { Op } = require('sequelize');
+        const { Op, where } = require('sequelize');
         where[Op.or] = [
           { name: { [Op.iLike]: `%${search}%` } },
           { email: { [Op.iLike]: `%${search}%` } },
