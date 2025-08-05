@@ -1,5 +1,17 @@
+'use strict';
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  const BalconyImage = sequelize.define('BalconyImage', {
+  class BalconyImage extends Model {
+    static associate(models) {
+      BalconyImage.belongsTo(models.UnitPlan, {
+        foreignKey: 'unit_plan_id',
+        as: 'unit_plan'
+      });
+    }
+  }
+
+  BalconyImage.init({
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -37,19 +49,24 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
+    sequelize,
+    modelName: 'BalconyImage',
     tableName: 'balcony_images',
     underscored: true,
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    indexes: [
+      {
+        fields: ['unit_plan_id']
+      }
+    ]
   });
 
-  BalconyImage.associate = function(models) {
-    BalconyImage.belongsTo(models.UnitPlan, {
-      foreignKey: 'unit_plan_id',
-      as: 'unitPlan'
-    });
-  };
+  // BalconyImage.associate = function(models) {
+  //   BalconyImage.belongsTo(models.UnitPlan, {
+  //     foreignKey: 'unit_plan_id',
+  //     as: 'unitPlan'
+  //   });
+  // };
 
   return BalconyImage;
 }; 

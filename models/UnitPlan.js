@@ -8,6 +8,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'project_id',
         as: 'project'
       });
+
+      UnitPlan.hasMany(models.BalconyImage, {
+        foreignKey: 'unit_plan_id',
+        as: 'balcony_images'
+      });
     }
   }
 

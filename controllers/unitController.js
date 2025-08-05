@@ -52,6 +52,32 @@ const uploadToS3 = multer({
   { name: 'svg', maxCount: 1 }
 ]);
 
+// Configure multer for S3 upload
+const upload3DImages = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.aws.bucketName,
+    // acl: 'public-read',
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `balcony/${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.originalname.match(/\.(obj|fbx|stl|dae)$/)) {
+      return cb(new Error('Only 3d image files are allowed!'), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 20MB limit
+  }
+}).single('image');
+
 const unitController = {
   // Register a new Unit
   async createUnit(req, res) {
@@ -251,6 +277,12 @@ const unitController = {
     try {
       const unit_plans = await UnitPlan.findAll({
         where:{status:1},
+        include: [
+          {
+            model: BalconyImage,
+            as: 'balcony_images',
+          }
+        ],
         order: [['created_at', 'DESC']]
       });
 
@@ -263,6 +295,47 @@ const unitController = {
       res.status(500).json({
         success: false,
         message: 'Error fetching unit plans',
+        error: error.message
+      });
+    }
+  },
+
+  async uploadBalcony3dImage(req, res){
+    try {
+      upload3DImages(req, res, async function(err) {
+        if (err) {
+          console.error('Upload error:', err);
+          return res.status(400).json({
+            success: false,
+            message: err.message
+          });
+        }
+        
+        const { image,planId,balconyId } = req.body;
+        const balconyImage = await BalconyImage.findByPk(balconyId);
+
+        if (!balconyImage) {
+          return res.status(404).json({
+            success: false,
+            message: 'BalconyImage not found'
+          });
+        }
+
+        await balconyImage.update({
+          image: req.file ? req.file.location : null
+        });
+
+        res.status(200).json({
+          success: true,
+          data: balconyImage,
+          message: 'Balcony Image updated successfully'
+        });
+    })
+    } catch (error) {
+      console.error('Error adding balcony image', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error adding balcony image',
         error: error.message
       });
     }

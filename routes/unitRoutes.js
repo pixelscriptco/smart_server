@@ -25,4 +25,6 @@ router.delete('/:id', auth, unitController.deleteUnit);
 // Create new unit
 router.post('/unitplan', auth, unitController.createUnitPlan);
 
+router.post('/upload-3d-image', auth, unitController.uploadBalcony3dImage);
+
 module.exports = router; 
