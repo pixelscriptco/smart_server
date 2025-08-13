@@ -13,6 +13,7 @@ router.post('/reset-password', userController.resetPassword);
 // Protected routes (require authentication)
 router.get('/me', auth, userController.getCurrentUser);
 router.get('/clients', auth, userController.getClients);
+router.get('/check-client-exists', auth, userController.checkClientExists);
 router.patch('/clients/:Id/reset-password', auth, userController.updateClientPassword);
 router.post('/client', auth, userController.createClient);
 router.patch('/clients/:id', auth, userController.updateClients);

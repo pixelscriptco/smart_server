@@ -114,7 +114,7 @@ const projectController = {
           });
         }
 
-        const { name, description, company_id, project_url, registration_number } = req.body;
+        const { name, description, company_id, project_url, registration_number,location,latitude,longitude } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
 
@@ -132,7 +132,10 @@ const projectController = {
           project_url: project_url,
           logo: logoFile ? logoFile.location : null,
           registration_number: registration_number || null,
-          qr_code: qrCodeFile ? qrCodeFile.location : null
+          qr_code: qrCodeFile ? qrCodeFile.location : null,
+          location: location ? location : null,
+          latitude: latitude ? JSON.parse(latitude) : null,
+          longitude: longitude ? JSON.parse(longitude) : null
         });
 
         res.status(201).json({
@@ -236,7 +239,7 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status, registration_number,description } = req.body;
+        const { name, url, project_url, status, registration_number,description,location,latitude,longitude } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const project = await Project.findByPk(req.params.project_id);
@@ -274,7 +277,10 @@ const projectController = {
           status: status || project.status,
           logo: logoFile ? logoFile.location : project.logo,
           registration_number: registration_number || project.registration_number,
-          qr_code: qrCodeFile ? qrCodeFile.location : project.qr_code
+          qr_code: qrCodeFile ? qrCodeFile.location : project.qr_code,
+          location: location ? location : project.location,
+          latitude: latitude ? JSON.parse(latitude) : project.latitude,
+          longitude: longitude ? JSON.parse(longitude) : project.longitude
         });
 
         res.status(200).json({

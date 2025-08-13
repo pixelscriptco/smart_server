@@ -24,7 +24,7 @@ const appController = {
       const { slug } = req.params;
       const project = await Project.findOne({
         where: { url: slug },
-        attributes: ['project_url', 'description'],
+        attributes: ['project_url', 'description','location','latitude','longitude'],
         include: [
           {
             model: Amenity,
@@ -87,6 +87,9 @@ const appController = {
         where: { url: slug }
       }); 
 
+      if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
       const building = await Building.findOne({
         where: { project_id: project.id },
         order: [['created_at', 'DESC']]
@@ -198,6 +201,76 @@ const appController = {
     } catch (error) {
       console.error('Error getting tower:', error);
       res.status(500).json({ message: 'Error getting tower' });
+    }
+  },
+
+  async getUnitFilter(req, res) {
+    try {
+      const { tower, floor } = req.query;
+      // Build the where clause based on the query parameters
+      if (!tower) {
+        return res.status(400).json({ message: 'Tower parameter is required' });  
+      }
+      if (!floor) {
+        const floors = await Floor.findAll({
+          where: { tower_id : tower },
+        });
+      }
+      // Fetch units based on the tower and floor parameters      
+      const whereClause = {};
+      if (tower) {
+        whereClause.tower = tower;
+      }
+      if (floor) {
+        whereClause.floor = floor;
+      }
+      const units = await Unit.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Floor, 
+            as: 'floor',
+            required: true,
+            include: [
+              {
+                model: Tower,
+                as: 'tower',
+                required: true,
+                where: { name: tower }
+              }
+            ]
+          },
+          {
+            model: UnitPlan,
+            as: 'unit_plans',
+            required: true,
+            attributes: ['type', 'area', 'cost']
+          },
+          {
+            model: UnitStatus,
+            as: 'unit_status',
+            required: true,
+            attributes: ['name']
+          }
+        ]
+      });
+      // Transform the data into the required format
+      const unitDetails = units.map(unit => ({
+        id: unit.id,
+        TowerName: unit.floor.tower.name,
+        FloorNumber: unit.floor.name.replace('Floor-', ''),
+        FlatNumber: unit.name,
+        TotalCost: unit.unit_plans.cost,
+        SBU: unit.unit_plans.area,
+        Status: unit.unit_status.name.toLowerCase(),
+        UnitType: unit.unit_plans.type,
+        created_at: unit.created_at,
+        updated_at: unit.updated_at
+      }));
+      res.json({ units: unitDetails });
+    } catch (error) {
+      console.error('Error getting unit details:', error);
+      res.status(500).json({ message: 'Error getting unit details' });
     }
   },
 

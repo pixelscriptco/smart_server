@@ -592,6 +592,44 @@ const userController = {
     }
   },
 
+  // Check if email or mobile already exists
+  async checkClientExists(req, res) {
+    try {
+      const { email, mobile } = req.query;
+      const errors = {};
+
+      // Check email if provided
+      if (email) {
+        const existingEmail = await db.User.findOne({
+          where: { email: email.toLowerCase() }
+        });
+        if (existingEmail) {
+          errors.email = 'A client with this email already exists';
+        }
+      }
+
+      // Check mobile if provided
+      if (mobile) {
+        const existingMobile = await db.User.findOne({
+          where: { mobile }
+        });
+        if (existingMobile) {
+          errors.mobile = 'A client with this mobile number already exists';
+        }
+      }
+
+      res.json({
+        exists: Object.keys(errors).length > 0,
+        errors
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error checking client existence',
+        error: error.message
+      });
+    }
+  },
+
   // Logout user
   async logout(req, res) {
     try {

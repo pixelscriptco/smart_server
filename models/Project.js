@@ -69,6 +69,21 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Path to QR code image or QR code string'
     },
+    location: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Geographical location of the project (e.g., address )'
+    },
+    latitude: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Geographical latitude of the project'
+    },
+    longitude: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Geographical longitude of the project'
+    },
     status: {
       type: DataTypes.TINYINT,
       allowNull: false,
