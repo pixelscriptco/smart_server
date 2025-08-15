@@ -401,6 +401,7 @@ const appController = {
               {
                 model: UnitStatus,
                 as: 'unit_status',
+                required: false,
                 attributes: ['name', 'color']
               }
             ]
