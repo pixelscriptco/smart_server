@@ -1,4 +1,4 @@
-const { where } = require('sequelize');
+const {  Op,Sequelize } = require('sequelize');
 const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking } = require('../models');
 
 const appController = {
@@ -298,12 +298,26 @@ const appController = {
             model: TowerPlan,
             as: 'tower_plans',
             required: false,
-            where: {status:1}
-          }]
+            separate: true,
+            order: [['order', 'ASC'], ['id', 'DESC']]
+        }]
       });
 
       if (!tower) {
         return res.status(404).json({ message: 'Tower not found' });
+      }
+
+      if (tower && tower.tower_plans?.length) {
+        const plainTower = tower.toJSON();  // convert Sequelize model → plain object
+        const seen = new Set();
+
+        plainTower.tower_plans = plainTower.tower_plans.filter(tp => {
+          if (seen.has(tp.order)) return false;
+          seen.add(tp.order);
+          return true;
+        });
+
+        return res.json(plainTower);  // send the filtered plain object
       }
 
       res.json(tower);
@@ -383,7 +397,7 @@ const appController = {
       if (!tower) {
         return res.status(404).json({ message: 'Tower not found' });
       }
-
+      
       const floor = await Floor.findOne({
         where: { name: floor_name, tower_id: tower_id },
         include: [
@@ -397,7 +411,8 @@ const appController = {
                 as: 'unit_plans',
                 required: false,
                 attributes: ['type', 'area']
-              },
+              }
+              ,
               {
                 model: UnitStatus,
                 as: 'unit_status',
@@ -408,7 +423,7 @@ const appController = {
           }
         ]
       });
-
+      
       if (!floor) {
         return res.status(404).json({ message: 'Floor not found' });
       }
