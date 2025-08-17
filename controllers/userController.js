@@ -451,6 +451,36 @@ const userController = {
     }
   },
 
+  // Set url
+  async updateClientUrl(req, res) {
+    try {
+      const {Id} = req.params;
+      const { url } = req.body;
+      const user = await db.User.findOne({
+        where: {id: Id}
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      const urlExist = await db.User.findOne({
+        where: {url: url}
+      });
+
+      if (urlExist) {
+        return res.status(400).json({ message: 'URL already exist' });
+      }
+
+      user.url = url;
+      await user.save();
+
+      res.json({ message: 'URL added successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error adding url', error: error.message });
+    }
+  },
+
   // Update last login
   async updateLastLogin(req, res, next) {
     try {

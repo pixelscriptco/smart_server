@@ -3,6 +3,7 @@ const router = express.Router();
 const appController = require('../controllers/appController');
 
 // Get dashboard statistics
+router.get('/user', appController.getUserProjectLocationByUrl);
 router.get('/project/:slug', appController.getProjectBySlug);
 router.get('/project/:slug/details', appController.getProjectDetailsBySlug);
 router.get('/project/:slug/updates', appController.getProjectUpdatesBySlug);

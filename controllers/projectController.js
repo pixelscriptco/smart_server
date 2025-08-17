@@ -184,7 +184,7 @@ const projectController = {
         include: [
           {
             model: User,
-            attributes: ['company'] // get only company from user
+            attributes: ['company','url'] // get only company from user
           }
         ]
       });

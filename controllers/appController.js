@@ -1,7 +1,31 @@
 const {  Op,Sequelize } = require('sequelize');
-const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking } = require('../models');
+const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking,User } = require('../models');
 
 const appController = {
+  async getUserProjectLocationByUrl(req, res) {
+    try {
+      
+      const { url } = req.query;
+      
+      const user = await User.findOne({
+        where: { url: url }
+      }); 
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const projects = await Project.findAll({
+        where: { user_id: user.id },
+        attributes: ['id', 'name', 'url', 'location', 'latitude', 'longitude'],
+      });
+
+      res.json(projects);  
+    } catch (error) {
+      console.error('Error getting projects:', error);
+      res.status(500).json({ message: 'Error getting projects' });
+    }
+  },
   async getProjectBySlug(req, res) {
     try {
       const { slug } = req.params;
