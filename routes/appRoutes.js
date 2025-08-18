@@ -5,6 +5,7 @@ const appController = require('../controllers/appController');
 // Get dashboard statistics
 router.get('/user', appController.getUserProjectLocationByUrl);
 router.get('/project/:slug', appController.getProjectBySlug);
+router.get('/project/:slug/data', appController.getProjectDataBySlug);
 router.get('/project/:slug/details', appController.getProjectDetailsBySlug);
 router.get('/project/:slug/updates', appController.getProjectUpdatesBySlug);
 router.get('/building/:slug', appController.getBuildingBySlug);

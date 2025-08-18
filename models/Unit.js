@@ -5,8 +5,8 @@ module.exports = (sequelize, DataTypes) => {
   class Unit extends Model {
     static associate(models) {
       Unit.belongsTo(models.UnitStatus, {
-        foreignKey: 'status',  // Keep this as is
-        as: 'unit_status'      // ✅ Renamed to avoid collision
+        foreignKey: 'status',
+        as: 'unit_status' 
       });
       Unit.belongsTo(models.Floor, {
         foreignKey: 'floor_id',
