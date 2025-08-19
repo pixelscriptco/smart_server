@@ -54,20 +54,27 @@ const appController = {
         return res.status(404).json({ message: 'Project not found' });
       }
 
+      const building = await Building.findOne({
+         where: { project_id: project.id }
+      }); 
+
+      if (!building) {
+        return res.status(404).json({ message: 'Building not found' });
+      }
+
       const towers = await Tower.findAll({
+        where: { building_id: building.id },
+        attributes: ["id", "name"],
         include: [
           {
-            model: Building,
-            required: true,
-            where: { project_id: project.id },
-          },
-        ],
-        attributes: ["id", "name"], // only tower fields you want
+            model: Floor,
+            as: 'floors',
+            required: false,
+            attributes: ['id', 'name']
+          }
+        ]
       });
-
-      console.log(towers.map(t => t.name));
-
-      res.json(project);  
+      res.json(towers);  
     } catch (error) {
       console.error('Error getting project:', error);
       res.status(500).json({ message: 'Error getting project' });
@@ -326,14 +333,53 @@ const appController = {
           ]
         });
       }else {
-        const filterFloor = await Floor.findAll({
+        const filterFloors = await Floor.findAll({
           where: { tower_id: whereClause.tower_id },
           attributes: ['id', 'name']
         });
 
-        if (!filterFloor || filterFloor.length === 0) {
+        if (!filterFloors || filterFloors.length === 0) {
           return res.status(404).json({ message: 'No floors found for this tower' });
         }
+
+        units = await Promise.all(
+          filterFloors.map((floor) => {
+            return Unit.findAll({
+              where: { floor_id: floor.id },
+              include: [
+                {
+                  model: Floor, 
+                  as: 'floor',
+                  required: true,
+                  where: { tower_id: whereClause.tower_id },
+                  include: [
+                    {
+                      model: Tower,
+                      as: 'tower',
+                      required: true,
+                      where: { id: whereClause.tower_id }
+                    }
+                  ]
+                },
+                {
+                  model: UnitPlan,
+                  as: 'unit_plans',
+                  required: true,
+                  attributes: ['type', 'area', 'cost']
+                },
+                {
+                  model: UnitStatus,
+                  as: 'unit_status',
+                  required: true, 
+                  attributes: ['name']
+                }
+              ]
+            });
+          })
+        );
+
+        // ⚡ flatten the result since it's array of arrays
+        units = units.flat();   
       }
 
       
@@ -373,7 +419,7 @@ const appController = {
         TowerName: unit.floor.tower.name,
         FloorNumber: unit.floor.name.replace('Floor-', ''),
         FlatNumber: unit.name,
-        TotalCost: unit.unit_plans.cost,
+        TotalCost: unit.cost??unit.unit_plans.cost,
         SBU: unit.unit_plans.area,
         Status: unit.unit_status.name.toLowerCase(),
         UnitType: unit.unit_plans.type,
@@ -543,7 +589,7 @@ const appController = {
       
       // Calculate statistics
       const stats = {
-        total_units: floor.units.length,
+        total_units: 0,
         booked_units: 0,
         available_units: 0,
         unit_types: {},
@@ -651,6 +697,46 @@ const appController = {
     } catch (error) {
       console.error('Error getting building:', error);
       res.status(500).json({ message: 'Error getting building' });
+    }
+  },
+
+   async getUnitById(req, res) {
+    try {
+      const { floor_id,unit_id } = req.params;
+
+      const floor = await Floor.findOne({
+        where: { id: floor_id },
+        order: [['created_at', 'DESC']]
+      });
+
+      if (!floor) {
+        return res.status(404).json({ message: 'Floor not found' });
+      }
+
+      const unit = await Unit.findOne({
+        where: { floor_id:floor_id,name: unit_id },
+        include: [
+              {
+                model: UnitPlan,
+                as: 'unit_plans',
+                required: false,
+              },
+              {
+                model: UnitStatus,
+                as: 'unit_status',
+                required: false,
+              }
+        ]
+      });
+
+      if (!unit) {
+        return res.status(404).json({ message: 'Unit not found' });
+      }
+
+      res.json(unit);
+    } catch (error) {
+      console.error('Error getting unit:', error);
+      res.status(500).json({ message: 'Error getting unit' });
     }
   },
 
