@@ -28,6 +28,8 @@ const upload = multer({
         cb(null, `logo/${uniqueSuffix}${path.extname(file.originalname)}`);
       } else if (file.fieldname === 'qr_code') {
         cb(null, `qr_code/${uniqueSuffix}${path.extname(file.originalname)}`);
+      } else if (file.fieldname === 'location_image') {
+        cb(null, `location/${uniqueSuffix}${path.extname(file.originalname)}`);
       } else {
         cb(null, `${file.fieldname}/${uniqueSuffix}${path.extname(file.originalname)}`);
       }
@@ -45,7 +47,8 @@ const upload = multer({
   }
 }).fields([
   { name: 'logo', maxCount: 1 },
-  { name: 'qr_code', maxCount: 1 }
+  { name: 'qr_code', maxCount: 1 },
+  { name: 'location_image', maxCount: 1 }
 ]);
 
 // Configure multer for S3 upload
@@ -114,9 +117,10 @@ const projectController = {
           });
         }
 
-        const { name, description, company_id, project_url, registration_number,location,latitude,longitude } = req.body;
+        const { name, description, company_id, project_url, registration_number,location,latitude,longitude,location_title,location_description } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
+        const locationImageFile = req.files && req.files.location_image && req.files.location_image[0];
 
         if (!name || !company_id) {
           return res.status(400).json({ message: 'Missing required fields.' });
@@ -134,8 +138,12 @@ const projectController = {
           registration_number: registration_number || null,
           qr_code: qrCodeFile ? qrCodeFile.location : null,
           location: location ? location : null,
+          location_title: location_title ? location_title : null,
+          location_description: location_description ? location_description : null,
+          location_image: locationImageFile ? locationImageFile.location : null,
           latitude: latitude ? JSON.parse(latitude) : null,
-          longitude: longitude ? JSON.parse(longitude) : null
+          longitude: longitude ? JSON.parse(longitude) : null,
+
         });
 
         res.status(201).json({
@@ -239,9 +247,10 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status, registration_number,description,location,latitude,longitude } = req.body;
+        const { name, url, project_url, status, registration_number,description,location,latitude,longitude,location_title,location_description,location_image } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
+        const locationFile = req.files && req.files.location_image && req.files.location_image[0];
         const project = await Project.findByPk(req.params.project_id);
 
         if (!project) {
@@ -268,6 +277,15 @@ const projectController = {
           }).promise();
         }
 
+        // If new qr_code is uploaded, delete old one from S3
+        if (locationFile && project.location_image) {
+          const oldLocationImage = project.location_image.split('/').pop();
+          await s3Client.deleteObject({
+            Bucket: config.aws.bucketName,
+            Key: `location/${oldLocationImage}`
+          }).promise();
+        }
+
         // Update project
         await project.update({
           name: name || project.name,
@@ -279,6 +297,9 @@ const projectController = {
           registration_number: registration_number || project.registration_number,
           qr_code: qrCodeFile ? qrCodeFile.location : project.qr_code,
           location: location ? location : project.location,
+          location_image: locationFile?locationFile:project.location_image,
+          location_title: location_title? location_title: project.location_title,
+          location_description: location_description? location_description: project.location_description,
           latitude: latitude ? JSON.parse(latitude) : project.latitude,
           longitude: longitude ? JSON.parse(longitude) : project.longitude
         });

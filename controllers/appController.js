@@ -17,7 +17,7 @@ const appController = {
 
       const projects = await Project.findAll({
         where: { user_id: user.id },
-        attributes: ['id', 'name', 'url', 'location', 'latitude', 'longitude'],
+        attributes: ['id', 'name', 'url', 'location', 'latitude', 'longitude','location_title','location_description','location_image'],
       });
 
       res.json(projects);  
@@ -382,37 +382,6 @@ const appController = {
         units = units.flat();   
       }
 
-      
-      // const units = await Unit.findAll({
-      //   include: [
-      //     {
-      //       model: Floor, 
-      //       as: 'floor',
-      //       required: true,
-      //       where: { tower_id: floor },
-      //       include: [
-      //         {
-      //           model: Tower,
-      //           as: 'tower',
-      //           required: true,
-      //           where: { name: tower }
-      //         }
-      //       ]
-      //     },
-      //     {
-      //       model: UnitPlan,
-      //       as: 'unit_plans',
-      //       required: true,
-      //       attributes: ['type', 'area', 'cost']
-      //     },
-      //     {
-      //       model: UnitStatus,
-      //       as: 'unit_status',
-      //       required: true,
-      //       attributes: ['name']
-      //     }
-      //   ]
-      // });
 
       const unitDetails = units.map(unit => ({
         id: unit.id,

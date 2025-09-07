@@ -15,7 +15,6 @@ router.get('/me', auth, userController.getCurrentUser);
 router.get('/clients', auth, userController.getClients);
 router.get('/check-client-exists', auth, userController.checkClientExists);
 router.patch('/clients/:Id/reset-password', auth, userController.updateClientPassword);
-router.patch('/clients/:Id/set-url', auth, userController.updateClientUrl);
 router.post('/client', auth, userController.createClient);
 router.patch('/clients/:id', auth, userController.updateClients);
 router.get('/profile', auth, userController.updateLastLogin, userController.getUserById);

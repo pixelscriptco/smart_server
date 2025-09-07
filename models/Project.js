@@ -74,6 +74,21 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Geographical location of the project (e.g., address )'
     },
+    location_title: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'location title of the project'
+    },
+    location_description: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Geographical location description of the project'
+    },
+    location_image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'location image of the project'
+    },
     latitude: {
       type: DataTypes.JSON,
       allowNull: true,
