@@ -542,6 +542,37 @@ const userController = {
     }
   },
 
+  async setUrlClient(req, res){
+    const { id } = req.params;
+    const data = req.body;
+
+    // Validate url
+    if (!data.url) {
+      return res.status(400).json({ message: 'URL required' });
+    }
+
+    try {
+      const user = await db.User.findByPk(id);
+
+      if (!user) {
+        return res.status(404).json({ message: 'user not found' });
+      }
+
+      await user.update(data);
+
+      res.status(200).json({
+        success: true,
+        message: `updated`,
+        data: user
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error update client',
+        error: error.message
+      });
+    }
+  },
+
   // Create a new client (customer)
   async createClient(req, res) {
     try {
