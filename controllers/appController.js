@@ -821,6 +821,7 @@ const appController = {
         return res.status(404).json({ message: 'Tower not found' });
       }
 
+
       const floor = await Floor.findOne({
         where: { tower_id: tower.id,name:'Floor-'+floor_name },
         order: [['created_at', 'DESC']]
@@ -829,7 +830,6 @@ const appController = {
       if (!floor) {
         return res.status(404).json({ message: 'Floor not found' });
       }
-      console.log(floor.id);
       
       const unit = await Unit.findOne({
         where: { floor_id: floor.id,name: unit_name},
@@ -921,7 +921,6 @@ const appController = {
         unit_id: flatId,
         project_id:project.id,
         status: 'pending',
-        type:'hot'
       });
 
       // Optionally, update the unit status to 'booked'
