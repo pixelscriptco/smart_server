@@ -7,6 +7,7 @@ const towerController = require('../controllers/towerController');
 
 // Get tower by ID
 router.get('/:id', towerController.getTowerById);
+router.get('/:id/units', towerController.getUnitsByTowerId);
 
 // Create new tower
 router.post('/', towerController.createTower);

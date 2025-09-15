@@ -59,6 +59,7 @@ const towerController = {
           message: 'Project ID is required'
         });
       }
+      console.log(projectId);
       
       const towers = await Tower.findAll({
         include: [
@@ -113,6 +114,42 @@ const towerController = {
       res.status(200).json({
         success: true,
         tower: tower
+      });
+    } catch (error) {
+      console.error('Error fetching tower:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching tower',
+        error: error.message
+      });
+    }
+  },
+
+  async getUnitsByTowerId(req, res){
+    try {      
+      const tower = await Tower.findByPk(req.params.id);
+      
+      if (!tower) {
+        return res.status(404).json({
+          success: false,
+          message: 'Tower not found'
+        });
+      }
+
+      const units = await Unit.findAll({
+              attributes: ['id', 'name'],
+              include: [
+                {
+                  model: Floor, 
+                  as: 'floor',
+                  required: true,
+                  where: { tower_id: tower.id },
+                }
+              ]
+            });
+      res.status(200).json({
+        success: true,
+        units: units
       });
     } catch (error) {
       console.error('Error fetching tower:', error);
