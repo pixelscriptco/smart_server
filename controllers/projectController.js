@@ -117,7 +117,7 @@ const projectController = {
           });
         }
 
-        const { name, description, company_id, project_url, registration_number,location,latitude,longitude,location_title,location_description } = req.body;
+        const { name, description, company_id, project_url, registration_number,website_link,location,latitude,longitude,location_title,location_description } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationImageFile = req.files && req.files.location_image && req.files.location_image[0];
@@ -130,6 +130,7 @@ const projectController = {
         const project = await Project.create({
           name,
           description,
+          website_link,
           status: 1,
           user_id: company_id,
           url: name.replace(/\s+/g, ''),
@@ -247,7 +248,7 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status, registration_number,description,location,latitude,longitude,location_title,location_description,location_image } = req.body;
+        const { name, url, project_url, status, registration_number,description,location,latitude,longitude,location_title,location_description,location_image,website_link } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationFile = req.files && req.files.location_image && req.files.location_image[0];
@@ -290,6 +291,7 @@ const projectController = {
         await project.update({
           name: name || project.name,
           url: url || project.url,
+          website_link:website_link || project.website_link,
           description: description || project.description,
           project_url: project_url || project.project_url,
           status: status || project.status,

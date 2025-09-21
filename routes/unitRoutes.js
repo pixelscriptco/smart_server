@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 // Get all units
 router.get('/', auth, unitController.getAllUnits);
 router.get('/enquiries', auth, unitController.getEnquiries);
-router.get('/unitplans', auth, unitController.getAllUnitPlans);
+router.get('/unitplans/:project_id', auth, unitController.getAllUnitPlans);
 
 // Get unit by ID
 router.get('/:id', auth, unitController.getUnitById);

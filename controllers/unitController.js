@@ -276,7 +276,7 @@ const unitController = {
   async getAllUnitPlans(req, res) {
     try {
       const unit_plans = await UnitPlan.findAll({
-        where:{status:1},
+        where:{status:1,project_id:req.params.project_id},
         include: [
           {
             model: BalconyImage,

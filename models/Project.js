@@ -54,6 +54,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Description of the project'
     },
+    website_link: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'website link of the project'
+    },
     project_url: {
       type: DataTypes.STRING,
       allowNull: true,
