@@ -173,16 +173,16 @@ const towerController = {
           });
         }
 
-        const { name, tower_id, image, svg, floors, order, direction } = req.body;
+        const { name, tower_id, image, svg, floors, order, direction, isExistingTower } = req.body;
 
-        if (!name || !req.files?.image || !req.files?.svg || !floors || !direction ) {
+        if (!name || !req.files?.image || !req.files?.svg || !direction ) {
           return res.status(400).json({
             success: false,
-            message: 'Missing required fields: name, image, svg, and floors are required'
+            message: 'Missing required fields: name, image, svg, and direction are required'
           });
         }
 
-        // Validate project exists
+        // Validate tower exists
         const tower = await Tower.findByPk(tower_id);
         if (!tower) {
           return res.status(404).json({
@@ -195,34 +195,88 @@ const towerController = {
         const image_url = req.files.image[0].location;
         const svg_url = req.files.svg[0].location;
 
-        const plan = await TowerPlan.create({
-          tower_id,
-          image_url,
-          svg_url,
-          order,
-          direction
-        });
+        if (isExistingTower === 'true') {
+          // Update existing TowerPlan
+          const existingPlan = await TowerPlan.findOne({
+            where: {
+              tower_id: tower_id,
+              order: order
+            }
+          });
 
-        const floor_count = tower.floor_count;
+          if (existingPlan) {
+            // Update existing plan with new SVG and image
+            await existingPlan.update({
+              image_url,
+              svg_url,
+              direction
+            });
 
-        for (let index = 1; index <= floor_count; index++) {
-          const name = 'Floor-'+index;
-          await Floor.create({
+            res.status(200).json({
+              success: true,
+              message: 'Tower plan updated successfully'
+            });
+          } else {
+            // Create new TowerPlan if none exists for this order
+            await TowerPlan.create({
+              tower_id,
+              image_url,
+              svg_url,
+              order,
+              direction
+            });
+
+            res.status(201).json({
+              success: true,
+              message: 'Tower plan created successfully'
+            });
+          }
+        } else {
+          // Create new TowerPlan and floors
+          const plan = await TowerPlan.create({
             tower_id,
-            name
+            image_url,
+            svg_url,
+            order,
+            direction
+          });
+
+          // Create floors if floors data is provided
+          if (floors) {
+            const floorsData = JSON.parse(floors);
+            if (Array.isArray(floorsData) && floorsData.length > 0) {
+              // If floors array is provided, create floors based on the data
+              for (let index = 1; index <= floorsData.length; index++) {
+                const floorName = 'Floor-' + index;
+                await Floor.create({
+                  tower_id,
+                  name: floorName
+                });
+              }
+            } else {
+              // Fallback: create floors based on tower floor_count
+              const floor_count = tower.floor_count || 1;
+              for (let index = 1; index <= floor_count; index++) {
+                const floorName = 'Floor-' + index;
+                await Floor.create({
+                  tower_id,
+                  name: floorName
+                });
+              }
+            }
+          }
+
+          res.status(201).json({
+            success: true,
+            message: 'Tower plan and floors created successfully'
           });
         }
-
-        res.status(201).json({
-          success: true,
-          message: 'Tower created successfully'
-        });
       });
     } catch (error) {
-      console.error('Error creating tower:', error);
+      console.error('Error creating/updating tower:', error);
       res.status(500).json({
         success: false,
-        message: 'Error creating tower',
+        message: 'Error creating/updating tower',
         error: error.message
       });
     }
