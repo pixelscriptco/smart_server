@@ -243,17 +243,17 @@ const towerController = {
 
           // Create floors if floors data is provided
           if (floors) {
-            const floorsData = JSON.parse(floors);
-            if (Array.isArray(floorsData) && floorsData.length > 0) {
-              // If floors array is provided, create floors based on the data
-              for (let index = 1; index <= floorsData.length; index++) {
-                const floorName = 'Floor-' + index;
-                await Floor.create({
-                  tower_id,
-                  name: floorName
-                });
-              }
-            } else {
+            // const floorsData = JSON.parse(floors);
+            // if (Array.isArray(floorsData) && floorsData.length > 0) {
+            //   // If floors array is provided, create floors based on the data
+            //   for (let index = 1; index <= floorsData.length; index++) {
+            //     const floorName = 'Floor-' + index;
+            //     await Floor.create({
+            //       tower_id,
+            //       name: floorName
+            //     });
+            //   }
+            // } else {
               // Fallback: create floors based on tower floor_count
               const floor_count = tower.floor_count || 1;
               for (let index = 1; index <= floor_count; index++) {
@@ -263,7 +263,7 @@ const towerController = {
                   name: floorName
                 });
               }
-            }
+            // }
           }
 
           res.status(201).json({
