@@ -68,7 +68,7 @@ const upload3DImages = multer({
   }),
   fileFilter: (req, file, cb) => {
     // Accept images only
-    if (!file.originalname.match(/\.(obj|fbx|stl|dae)$/)) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error('Only 3d image files are allowed!'), false);
     }
     cb(null, true);
