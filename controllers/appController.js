@@ -834,11 +834,13 @@ const appController = {
       const project = await Project.findOne({
         where: { url: slug }
       }); 
-
+      console.log('...project id.....',project.id);
+      
       const building = await Building.findOne({
         where: { project_id: project.id },
         order: [['created_at', 'DESC']]
       });
+      console.log('...building id.....',building.id);
 
       if (!building) {
         return res.status(404).json({ message: 'Building not found' });
@@ -848,7 +850,8 @@ const appController = {
         where: { building_id: building.id,name:tower_name },
         order: [['created_at', 'DESC']]
       });
-
+      console.log('....tower id...',tower.id);
+      
       if (!tower) {
         return res.status(404).json({ message: 'Tower not found' });
       }
@@ -858,7 +861,7 @@ const appController = {
         where: { tower_id: tower.id,name:'Floor-'+floor_name },
         order: [['created_at', 'DESC']]
       });
-
+      console.log('...floor id....',floor.id);
       if (!floor) {
         return res.status(404).json({ message: 'Floor not found' });
       }
@@ -873,7 +876,8 @@ const appController = {
           }
         ]
       });
-
+      console.log('....unit id.....',unit.id);
+      
       if (!unit) {
         return res.status(404).json({ message: 'Unit not found' });
       }
