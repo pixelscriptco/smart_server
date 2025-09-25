@@ -17,7 +17,7 @@ const appController = {
 
       const projects = await Project.findAll({
         where: { user_id: user.id },
-        attributes: ['id', 'name', 'url', 'location', 'latitude', 'longitude','location_title','location_description','location_image'],
+        attributes: ['id', 'name', 'url','logo', 'location', 'latitude', 'longitude','location_title','location_description','location_image'],
       });
 
       res.json(projects);  
