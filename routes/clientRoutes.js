@@ -30,6 +30,7 @@ router.get('/tower/:tower_id/floors', clientController.getFloors);
 
 // Bookings routes
 router.get('/bookings', clientController.listBookings);
+router.post('/bookings', clientController.bookUnit);
 router.put('/bookings/:booking_id/status', clientController.updateBookingStatus);
 
 router.patch('/units/:unit_id/cost', clientController.updatePrice);

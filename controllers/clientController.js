@@ -797,3 +797,123 @@ exports.deleteProjectUpdates = async(req,res)=>{
     });
   }
 };
+
+// Book a unit
+exports.bookUnit = async (req, res) => {
+  try {
+    const { email, first_name, last_name, mobile, project_id, unit_id } = req.body;
+
+    // Validate required fields
+    if (!email || !first_name || !last_name || !mobile || !project_id || !unit_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields (email, first_name, last_name, mobile, project_id, unit_id) are required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    // Validate mobile format (assuming 10 digits)
+    if (!/^\d{10}$/.test(mobile)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number must be 10 digits'
+      });
+    }
+    let id = project_id;
+    // Check if project exists
+    const project = await Project.findByPk(id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Check if unit exists and belongs to the project
+    const unit = await Unit.findOne({
+      where: { 
+        id: unit_id
+      }
+    });
+
+    if (!unit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Unit not found or does not belong to the specified project'
+      });
+    }
+
+    // Check if unit is available (status 1 = available)
+    if (unit.status !== 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unit is not available for booking'
+      });
+    }
+
+    // Check if there's already a pending or confirmed booking for this unit
+    const existingBooking = await Booking.findOne({
+      where: {
+        unit_id: unit_id,
+        status: ['pending', 'confirmed']
+      }
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unit is already booked'
+      });
+    }
+
+    // Create booking
+    const booking = await Booking.create({
+      email,
+      first_name,
+      last_name,
+      mobile,
+      project_id,
+      unit_id,
+      status: 'pending',
+    });
+
+    // Update unit status to pending (status 1 = available, 2 = booked)
+    await Unit.update(
+      { status: 1 }, // Keep as available until confirmed
+      { where: { id: unit_id } }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Unit booked successfully',
+      data: {
+        booking_id: booking.id,
+        unit_id: booking.unit_id,
+        project_id: booking.project_id,
+        status: booking.status,
+        customer: {
+          first_name: booking.first_name,
+          last_name: booking.last_name,
+          email: booking.email,
+          mobile: booking.mobile
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error booking unit:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error booking unit',
+      error: error.message
+    });
+  }
+};
