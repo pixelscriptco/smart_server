@@ -614,6 +614,24 @@ exports.updateBookingStatus = async (req, res) => {
     }
     booking.status = status;
     await booking.save();
+    
+    // Map booking status to unit status numbers
+    let unitStatus;
+    switch (status) {
+      case 'pending':
+        unitStatus = 1;
+        break;
+      case 'confirmed':
+        unitStatus = 2;
+        break;
+      case 'cancelled':
+        unitStatus = 1;
+        break;
+      default:
+        unitStatus = 1;
+    }
+
+    await Unit.update({status: unitStatus}, {where: {id: booking.unit_id}});
     res.json({ success: true, booking });
   } catch (error) {
     console.error('Error updating booking status:', error);

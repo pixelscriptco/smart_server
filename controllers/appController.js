@@ -428,7 +428,22 @@ const appController = {
             required: false,
             separate: true,
             order: [['order', 'ASC'], ['id', 'DESC']]
-        }]
+          },
+          {
+            model: Floor,
+            as: 'floors',
+            required: false,
+            include: [
+              {
+                model: Unit,
+                as: 'units',
+                required: false,
+                attributes: ['id', 'name', 'status'],
+                order: [['id', 'ASC']]
+              }
+            ]
+          }
+        ]
       });
 
       if (!tower) {
@@ -444,6 +459,23 @@ const appController = {
           seen.add(tp.order);
           return true;
         });
+
+        // Add units summary to the response
+        if (plainTower.floors) {
+          const allUnits = [];
+          plainTower.floors.forEach(floor => {
+            if (floor.units) {
+              floor.units.forEach(unit => {
+                allUnits.push({
+                  unit_id: unit.id,
+                  status: unit.status,
+                });
+              });
+            }
+          });
+          
+          plainTower.units=  allUnits
+        }
 
         return res.json(plainTower);  // send the filtered plain object
       }
@@ -837,8 +869,9 @@ const appController = {
           {
             model: UnitPlan,
             as: 'unit_plans',
-            required: false,
-          }]
+            required: false
+          }
+        ]
       });
 
       if (!unit) {

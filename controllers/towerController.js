@@ -241,8 +241,10 @@ const towerController = {
             direction
           });
 
+          let tower_plans = await TowerPlan.findAll({where: {tower_id: tower_id}});
+
           // Create floors if floors data is provided
-          if (floors) {
+          if (tower_plans.length==1 && floors) {
             // const floorsData = JSON.parse(floors);
             // if (Array.isArray(floorsData) && floorsData.length > 0) {
             //   // If floors array is provided, create floors based on the data
