@@ -1,5 +1,5 @@
 const {  Op,Sequelize } = require('sequelize');
-const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking,User } = require('../models');
+const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking,User,BalconyImage } = require('../models');
 
 const appController = {
   async getUserProjectLocationByUrl(req, res) {
@@ -872,7 +872,14 @@ const appController = {
           {
             model: UnitPlan,
             as: 'unit_plans',
-            required: false
+            required: false,
+            include:[
+              {
+                model: BalconyImage,
+                as: 'balcony_images',
+                required: false
+              }
+            ]
           }
         ]
       });
