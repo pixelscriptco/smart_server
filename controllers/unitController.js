@@ -528,8 +528,8 @@ const unitController = {
         });
 
         // If balcony entries are provided, store them
-        if (balcony_entries) {
-          const balcony_entries = JSON.parse(balcony_entries);
+        if (req.body.balcony_entries) {
+          const balcony_entries = JSON.parse(req.body.balcony_entries);
           if (balcony_entries.length > 0) {
             balcony_entries.forEach(async (entry) => {
               await BalconyImage.create({
