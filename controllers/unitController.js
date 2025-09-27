@@ -321,6 +321,8 @@ const unitController = {
           });
         }
 
+        console.log(req.file.location);
+        
         await balconyImage.update({
           image: req.file ? req.file.location : null
         });
