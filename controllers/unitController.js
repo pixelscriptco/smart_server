@@ -324,7 +324,7 @@ const unitController = {
         console.log(req.file.location);
         
         await balconyImage.update({
-          image: req.file ? req.file.location : null
+          image_url: req.file ? req.file.location : null
         });
 
         res.status(200).json({
