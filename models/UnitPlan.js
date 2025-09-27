@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: 'Plan details'
     },
+    svg_url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'URL for selction view'
+    },
     vr_url: {
         type: DataTypes.TEXT,
         allowNull: true,

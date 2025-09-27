@@ -514,12 +514,13 @@ const unitController = {
         
         // Get S3 URLs for uploaded files
         const plan = req.files.image[0].location;
-
+        const svg_url = req.files.svg[0].location;
         // Create unitplan record
         const unitPlan = await UnitPlan.create({
           name,
           project_id,
           plan,
+          svg_url,
           vr_url,
           area,
           cost,
@@ -527,8 +528,8 @@ const unitController = {
         });
 
         // If balcony entries are provided, store them
-        if (req.body.balcony_entries) {
-          const balcony_entries = JSON.parse(req.body.balcony_entries);
+        if (balcony_entries) {
+          const balcony_entries = JSON.parse(balcony_entries);
           if (balcony_entries.length > 0) {
             balcony_entries.forEach(async (entry) => {
               await BalconyImage.create({
