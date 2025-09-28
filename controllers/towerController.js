@@ -369,6 +369,7 @@ const towerController = {
           {
             model: FloorPlan,
             as: 'floor_plan',
+            required: false,
             attributes: ['id', 'name']
           }
         ]
