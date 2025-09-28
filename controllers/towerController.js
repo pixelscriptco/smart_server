@@ -364,6 +364,13 @@ const towerController = {
 
       const floors = await Floor.findAll({
         where: { tower_id: req.params.id },
+        include: [
+          {
+            model: FloorPlan,
+            as: 'floor_plans',
+            where: { project_id: parseInt(project_id) }
+          }
+        ]
       });
 
       if (!floors) {
