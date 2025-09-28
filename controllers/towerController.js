@@ -367,7 +367,7 @@ const towerController = {
         include: [
           {
             model: FloorPlan,
-            as: 'floor_plans',
+            as: 'floor_plan',
           }
         ]
       });
