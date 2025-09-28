@@ -3,6 +3,7 @@ const { S3Client } = require('@aws-sdk/client-s3');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const config = require('../config/config');
+const { where } = require('sequelize');
 
 // Configure AWS S3 Client
 const s3Client = new S3Client({
@@ -368,6 +369,7 @@ const towerController = {
           {
             model: FloorPlan,
             as: 'floor_plan',
+            attributes: ['id', 'name']
           }
         ]
       });
