@@ -368,7 +368,6 @@ const towerController = {
           {
             model: FloorPlan,
             as: 'floor_plans',
-            where: { project_id: parseInt(project_id) }
           }
         ]
       });
