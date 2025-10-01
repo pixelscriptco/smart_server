@@ -41,6 +41,8 @@ const userController = {
         email,
         mobile,
         password,
+        logo,
+        description,
         company,
         status: 'active',
         type: 'customer'
@@ -62,6 +64,8 @@ const userController = {
           email: user.email,
           mobile: user.mobile,
           company: user.company,
+          logo:user.logo,
+          description:user.description,
           status: user.status
         }
       });
@@ -132,6 +136,8 @@ const userController = {
           email: user.email,
           mobile: user.mobile,
           company: user.company,
+          logo:user.logo,
+          description:user.description,
           status: user.status
         }
       });
@@ -202,7 +208,9 @@ const userController = {
           email: user.email,
           mobile: user.mobile,
           company: user.company,
-          status: user.status
+          status: user.status,
+          logo:user.logo,
+          description:user.description
         }
       });
     } catch (error) {
@@ -281,7 +289,9 @@ const userController = {
           email: user.email,
           mobile: user.mobile,
           company: user.company,
-          status: user.status
+          status: user.status,
+          logo:user.logo,
+          description:user.description
         }
       });
     } catch (error) {
@@ -612,7 +622,9 @@ const userController = {
           email: user.email,
           mobile: user.mobile,
           company: user.company,
-          status: user.status
+          status: user.status,
+          logo:user.logo,
+          description:user.description
         }
       });
     } catch (error) {

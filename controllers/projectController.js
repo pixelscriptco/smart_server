@@ -30,6 +30,8 @@ const upload = multer({
         cb(null, `qr_code/${uniqueSuffix}${path.extname(file.originalname)}`);
       } else if (file.fieldname === 'location_image') {
         cb(null, `location/${uniqueSuffix}${path.extname(file.originalname)}`);
+      }else if (file.fieldname === 'location_logo') {
+        cb(null, `location_logo/${uniqueSuffix}${path.extname(file.originalname)}`);
       } else {
         cb(null, `${file.fieldname}/${uniqueSuffix}${path.extname(file.originalname)}`);
       }
@@ -48,7 +50,8 @@ const upload = multer({
 }).fields([
   { name: 'logo', maxCount: 1 },
   { name: 'qr_code', maxCount: 1 },
-  { name: 'location_image', maxCount: 1 }
+  { name: 'location_image', maxCount: 1 },
+  { name: 'location_logo', maxCount: 1 }
 ]);
 
 // Configure multer for S3 upload
@@ -121,6 +124,7 @@ const projectController = {
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationImageFile = req.files && req.files.location_image && req.files.location_image[0];
+        const locationLogoFile = req.files && req.files.location_logo && req.files.location_logo[0];
 
         if (!name || !company_id) {
           return res.status(400).json({ message: 'Missing required fields.' });
@@ -144,7 +148,7 @@ const projectController = {
           location_image: locationImageFile ? locationImageFile.location : null,
           latitude: latitude ? JSON.parse(latitude) : null,
           longitude: longitude ? JSON.parse(longitude) : null,
-
+          location_logo: locationLogoFile ? locationLogoFile.location : null,
         });
 
         res.status(201).json({
@@ -252,6 +256,7 @@ const projectController = {
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationFile = req.files && req.files.location_image && req.files.location_image[0];
+        const locationLogoFile = req.files && req.files.location_logo && req.files.location_logo[0];
         const project = await Project.findByPk(req.params.project_id);
 
         if (!project) {
@@ -287,6 +292,15 @@ const projectController = {
           }).promise();
         }
 
+        // If new location logo is uploaded, delete old one from S3
+        if (locationLogoFile && project.location_logo) {
+          const oldLocationLogo = project.location_logo.split('/').pop();
+          await s3Client.deleteObject({
+            Bucket: config.aws.bucketName,
+            Key: `location_logo/${oldLocationLogo}`
+          }).promise();
+        }
+
         // Update project
         await project.update({
           name: name || project.name,
@@ -303,7 +317,8 @@ const projectController = {
           location_title: location_title? location_title: project.location_title,
           location_description: location_description? location_description: project.location_description,
           latitude: latitude ? JSON.parse(latitude) : project.latitude,
-          longitude: longitude ? JSON.parse(longitude) : project.longitude
+          longitude: longitude ? JSON.parse(longitude) : project.longitude,
+          location_logo: locationLogoFile ? locationLogoFile.location : project.location_logo
         });
 
         res.status(200).json({
