@@ -708,7 +708,8 @@ exports.getProjectUpdates = async(req,res)=>{
   }
   try {
     const updates = await ProjectUpdate.findAll({
-      where: { project_id:projectId }
+      where: { project_id:projectId },
+      order: [['created_at', 'DESC']]
     })
 
     res.status(200).json({

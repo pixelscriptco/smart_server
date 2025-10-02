@@ -377,6 +377,7 @@ const floorController = {
     try {
       const floorPlans = await FloorPlan.findAll({
         where: { project_id: req.params.project_id },
+        order: [['created_at', 'DESC']]
       });
       if (!floorPlans) {
         return res.status(404).json({

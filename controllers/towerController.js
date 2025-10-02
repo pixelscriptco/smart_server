@@ -372,7 +372,8 @@ const towerController = {
             required: false,
             attributes: ['id', 'name']
           }
-        ]
+        ],
+        order: [['created_at', 'DESC']]
       });
 
       if (!floors) {

@@ -18,6 +18,7 @@ const appController = {
       const projects = await Project.findAll({
         where: { user_id: user.id },
         attributes: ['id', 'name', 'url','logo', 'location', 'latitude', 'longitude','location_title','location_description','location_image'],
+        order: [['created_at', 'DESC']]
       });
 
       res.json(projects);  
@@ -72,7 +73,8 @@ const appController = {
             required: false,
             attributes: ['id', 'name']
           }
-        ]
+        ],
+        order: [['created_at', 'DESC']]
       });
       res.json(towers);  
     } catch (error) {
@@ -130,7 +132,8 @@ const appController = {
       }
 
       $updates = await ProjectUpdate.findAll({
-        where: { project_id: project.id }
+        where: { project_id: project.id },
+        order: [['created_at', 'DESC']]
       })
 
       res.json({'updates':$updates});  
@@ -922,7 +925,8 @@ const appController = {
       }
 
       const amenities = await Amenity.findAll({
-        where: { tower_id: tower.id}
+        where: { tower_id: tower.id},
+        order: [['created_at', 'DESC']]
       })
 
       res.json(amenities);

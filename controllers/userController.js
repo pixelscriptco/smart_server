@@ -1,6 +1,20 @@
 const db = require('../models');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { S3Client } = require('@aws-sdk/client-s3');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const config = require('../config/config');
+
+// Configure AWS S3 Client
+const s3Client = new S3Client({
+  region: config.aws.region,
+  credentials: {
+    accessKeyId: config.aws.accessKeyId,
+    secretAccessKey: config.aws.secretAccessKey
+  }
+});
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
@@ -12,6 +26,31 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS
   }
 });
+
+const uploadImages = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.aws.bucketName,
+    // acl: 'public-read',
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, `client/${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  },
+  limits: {
+    fileSize: 20 * 1024 * 1024 // 20MB limit
+  }
+}).single('logo');
 
 const userController = {
   // Register a new user
@@ -226,7 +265,8 @@ const userController = {
   async getAllUsers(req, res) {
     try {
       const users = await db.User.findAll({
-        attributes: { exclude: ['password'] }
+        attributes: { exclude: ['password'] },
+        order: [['createdAt', 'DESC']]
       });
       res.json(users);
     } catch (error) {
@@ -510,7 +550,8 @@ const userController = {
     try {
       const users = await db.User.findAll({
         where: { type: 'customer' },
-        attributes: { exclude: ['password'] }
+        attributes: { exclude: ['password'] },
+        order: [['createdAt', 'DESC']]
       });
       res.json(users);
     } catch (error) {
@@ -586,47 +627,67 @@ const userController = {
   // Create a new client (customer)
   async createClient(req, res) {
     try {
-      const { name, email, mobile, password, company, status } = req.body;
+      uploadImages(req, res, async function(err) {
 
-      // Check if user already exists
-      const existingUser = await db.User.findOne({
-        where: {
-          [db.Sequelize.Op.or]: [
-            { email },
-            { mobile }
-          ]
+        if (err) {
+          return res.status(400).json({
+            success: false,
+            message: err.message
+          });
         }
-      });
-      if (existingUser) {
-        return res.status(400).json({
-          message: 'User with this email or mobile already exists'
+
+        const { name, email, mobile, password, company, status,description } = req.body;
+
+        // Check if user already exists
+        const existingUser = await db.User.findOne({
+          where: {
+            [db.Sequelize.Op.or]: [
+              { email },
+              { mobile }
+            ]
+          }
         });
-      }
-
-      // Create new client (type: customer)
-      const user = await db.User.create({
-        name,
-        email,
-        mobile,
-        password,
-        company,
-        status: status || 'active',
-        type: 'customer'
-      });
-
-      res.status(201).json({
-        message: 'Client created successfully',
-        client: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          mobile: user.mobile,
-          company: user.company,
-          status: user.status,
-          logo:user.logo,
-          description:user.description
+        if (existingUser) {
+          return res.status(400).json({
+            message: 'User with this email or mobile already exists'
+          });
         }
-      });
+  
+        console.log(req.file);
+        
+        // Handle logo upload (optional)
+        let logo = null;
+        if (req.file) {
+          logo = req.file.location;
+        }
+        
+        // Create new client (type: customer)
+        const user = await db.User.create({
+          name,
+          email,
+          mobile,
+          password,
+          company,
+          description,
+          logo,
+          status: status || 'active',
+          type: 'customer'
+        });
+  
+        res.status(201).json({
+          message: 'Client created successfully',
+          client: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            company: user.company,
+            status: user.status,
+            logo:user.logo,
+            description:user.description
+          }
+        });
+      })
     } catch (error) {
       res.status(400).json({
         message: 'Error creating client',

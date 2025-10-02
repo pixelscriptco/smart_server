@@ -427,7 +427,8 @@ const projectController = {
             as: 'building',
             where: { project_id: parseInt(projectId) }
           }
-        ]
+        ],
+        order: [['created_at', 'DESC']]
       });
       
       res.status(200).json({
@@ -454,7 +455,8 @@ const projectController = {
     }
     try {
       const updates = await ProjectUpdate.findAll({
-        where: { project_id:projectId }
+        where: { project_id:projectId },
+        order: [['created_at', 'DESC']]
       })
 
       res.status(200).json({
@@ -549,6 +551,7 @@ const projectController = {
 
       const plans = await UnitPlan.findAll({
         where: { project_id: req.params.id },
+        order: [['created_at', 'DESC']]
       });
 
       if (!plans) {
@@ -606,6 +609,7 @@ const projectController = {
 
       const amenities = await Amenity.findAll({
         where: { project_id: req.params.id },
+        order: [['created_at', 'DESC']]
       });
 
       res.status(200).json({
