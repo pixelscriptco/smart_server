@@ -17,11 +17,20 @@ const appController = {
 
       const projects = await Project.findAll({
         where: { user_id: user.id },
-        attributes: ['id', 'name', 'url','logo', 'location', 'latitude', 'longitude','location_title','location_description','location_image'],
+        attributes: ['id', 'name', 'url','logo', 'location', 'latitude', 'longitude','location_title','location_description','location_image','location_logo'],
         order: [['created_at', 'DESC']]
       });
 
-      res.json(projects);  
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          company: user.company,
+          logo: user.logo,
+          description: user.description
+        },
+        projects: projects
+      });  
     } catch (error) {
       console.error('Error getting projects:', error);
       res.status(500).json({ message: 'Error getting projects' });
