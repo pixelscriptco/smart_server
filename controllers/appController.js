@@ -278,6 +278,7 @@ const appController = {
   },
 
   async getUnitFilter(req, res) {
+    
     try {
       const { tower, floor } = req.query;
       
@@ -394,6 +395,28 @@ const appController = {
         units = units.flat();   
       }
 
+      // Deduplicate units based on area, cost, and type
+      const uniqueUnits = [];
+      const seenCombinations = new Set();
+      
+      units.forEach(unit => {
+        const area = unit.unit_plans?.area;
+        const cost = unit.cost??unit.unit_plans.cost;
+        const type = unit.unit_plans?.type;
+        
+        if (area && cost && type) {
+          const combination = `${area}-${cost}-${type}`;
+          if (!seenCombinations.has(combination)) {
+            seenCombinations.add(combination);
+            uniqueUnits.push(unit);
+          }
+        } else {
+          // Include units without complete unit_plans data
+          uniqueUnits.push(unit);
+        }
+      });
+      
+      units = uniqueUnits;
 
       const unitDetails = units.map(unit => ({
         id: unit.id,
