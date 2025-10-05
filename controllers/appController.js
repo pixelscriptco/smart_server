@@ -345,6 +345,8 @@ const appController = {
             }
           ]
         });
+
+        available = units.filter(unit => unit.status === 1).length;
       }else {
         const filterFloors = await Floor.findAll({
           where: { tower_id: whereClause.tower_id },
@@ -390,11 +392,11 @@ const appController = {
             });
           })
         );
-        available = units.length;
+        available = units.filter(unit => unit.status === 1).length;
         // ⚡ flatten the result since it's array of arrays
         units = units.flat();   
       }
-
+      
       // Deduplicate units based on area, cost, and type
       const uniqueUnits = [];
       const seenCombinations = new Set();
