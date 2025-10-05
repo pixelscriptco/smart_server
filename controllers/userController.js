@@ -564,30 +564,63 @@ const userController = {
 
   async updateClients(req, res){
     const { id } = req.params;
-    const data = req.body;
-
-    // Validate status
-    if (!['active', 'inactive'].includes(data.status)) {
-      return res.status(400).json({ message: 'Invalid status value' });
-    }
-
+    
     try {
-      const user = await db.User.findByPk(id);
+      uploadImages(req, res, async function(err) {
 
-      if (!user) {
-        return res.status(404).json({ message: 'user not found' });
-      }
+        if (err) {
+          return res.status(400).json({
+            success: false,
+            message: err.message
+          });
+        }
 
-      await user.update(data);
+        const { name, mobile, company, description, status } = req.body;
+        
+        // Validate status
+        if (status && !['active', 'inactive'].includes(status)) {
+          return res.status(400).json({ message: 'Invalid status value' });
+        }
 
-      res.status(200).json({
-        success: true,
-        message: `updated`,
-        data: user
+        const user = await db.User.findByPk(id);
+
+        if (!user) {
+          return res.status(404).json({ message: 'user not found' });
+        }
+
+        // Prepare update data
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (mobile) updateData.mobile = mobile;
+        if (company) updateData.company = company;
+        if (description) updateData.description = description;
+        if (status) updateData.status = status;
+
+        // Handle logo upload (optional)
+        if (req.files && req.files.logo && req.files.logo[0]) {
+          updateData.logo = req.files.logo[0].location;
+        }
+
+        await user.update(updateData);
+
+        res.status(200).json({
+          success: true,
+          message: `Client updated successfully`,
+          data: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            mobile: user.mobile,
+            company: user.company,
+            status: user.status,
+            logo: user.logo,
+            description: user.description
+          }
+        });
       });
     } catch (error) {
       res.status(500).json({
-        message: 'Error update client',
+        message: 'Error updating client',
         error: error.message
       });
     }
