@@ -392,7 +392,9 @@ const appController = {
             });
           })
         );
-        available = units.filter(unit => unit.status === 1).length;
+        // console.log('............',units.filter(unit => unit.status == 1));
+        
+        // available = units.filter(unit => unit.status === 1).length;
         // ⚡ flatten the result since it's array of arrays
         units = units.flat();   
       }
