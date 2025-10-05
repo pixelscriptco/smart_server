@@ -281,7 +281,7 @@ const appController = {
     
     try {
       const { tower, floor } = req.query;
-      
+      let available =0;
       // Build the where clause based on the query parameters
       if (!tower) {
         return res.status(400).json({ message: 'Tower parameter is required' });  
@@ -390,7 +390,7 @@ const appController = {
             });
           })
         );
-
+        available = units.length;
         // ⚡ flatten the result since it's array of arrays
         units = units.flat();   
       }
@@ -430,7 +430,7 @@ const appController = {
         created_at: unit.created_at,
         updated_at: unit.updated_at
       }));
-      res.json({ units: unitDetails });
+      res.json({ units: unitDetails,available_units:available });
     } catch (error) {
       console.error('Error getting unit details:', error);
       res.status(500).json({ message: 'Error getting unit details' });
