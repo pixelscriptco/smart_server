@@ -597,9 +597,8 @@ const userController = {
         if (status) updateData.status = status;
 
         // Handle logo upload (optional)
-        if (req.files && req.files.logo && req.files.logo[0]) {
-          updateData.logo = req.files.logo[0].location;
-        }
+
+        updateData.logo = req.file ? req.file.location : user.logo;
 
         await user.update(updateData);
 
