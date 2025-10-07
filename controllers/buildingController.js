@@ -1,4 +1,4 @@
-const { Building, Tower } = require('../models');
+const { Building, Tower, Project } = require('../models');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
@@ -163,6 +163,8 @@ const buildingController = {
     try {
       const { project_id } = req.params;
 
+      const project = await Project.findByPk(project_id);
+
       const buildings = await Building.findAll({
         where: { project_id },
         order: [['created_at', 'DESC']]
@@ -173,6 +175,7 @@ const buildingController = {
       }
       res.status(200).json({
         success: true,
+        project:project.name,
         buildings: buildings
       });
     } catch (error) {
