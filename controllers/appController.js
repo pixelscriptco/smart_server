@@ -1,4 +1,4 @@
-const {  Op,Sequelize } = require('sequelize');
+const {  Op,Sequelize, where } = require('sequelize');
 const { Building, Tower,TowerPlan, Floor, Unit, UnitStatus, Amenity, Project, FloorPlan,UnitPlan,ProjectUpdate,Booking,User,BalconyImage } = require('../models');
 
 const appController = {
@@ -280,29 +280,46 @@ const appController = {
   async getUnitFilter(req, res) {
     
     try {
-      const { tower, floor } = req.query;
+      const { project,tower, floor } = req.query;
       let available =0;
       // Build the where clause based on the query parameters
+      if (!project) {
+        return res.status(400).json({ message: 'Project parameter is required' });  
+      }
       if (!tower) {
         return res.status(400).json({ message: 'Tower parameter is required' });  
       }
-      if (!floor) {
-        const floors = await Floor.findAll({
-          where: { tower_id : tower },
-        });
-      }
+      
+      let selected_project = await Project.findOne({
+        where:{url:project},
+        attributes: ['id']
+      })
+      
+      let building = await Building.findOne({
+        where:{project_id:selected_project.id},
+        attributes: ['id']
+      })
+    
       // Fetch units based on the tower and floor parameters      
       const whereClause = {};
       if (tower) {
         whereClause.tower = tower;
-        const filterTower = await Tower.findOne({
-          where: { name: tower }
-        });
+        let filterTower = await Tower.findOne({
+          where:{building_id:building.id,name:tower},
+          attributes: ['id']
+        })  
         if (!filterTower) {
           return res.status(404).json({ message: 'Tower not found' });
         }
         whereClause.tower_id = filterTower.id;
+
+        if (!floor) {
+          let floors = await Floor.findAll({
+            where: { tower_id : filterTower.id }
+          });
+        }
       }
+
       let units = [];
 
       if (floor) {
@@ -351,7 +368,7 @@ const appController = {
         const filterFloors = await Floor.findAll({
           where: { tower_id: whereClause.tower_id },
           attributes: ['id', 'name']
-        });
+        });        
 
         if (!filterFloors || filterFloors.length === 0) {
           return res.status(404).json({ message: 'No floors found for this tower' });
@@ -392,11 +409,16 @@ const appController = {
             });
           })
         );
-        // console.log('............',units.filter(unit => unit.status == 1));
-        
-        // available = units.filter(unit => unit.status === 1).length;
+
         // ⚡ flatten the result since it's array of arrays
         units = units.flat();   
+        units.forEach((unit)=>{
+          console.log(unit.id);
+          
+        })
+        
+        available = units.filter(unit => unit.status === 1).length;
+
       }
       
       // Deduplicate units based on area, cost, and type
@@ -434,7 +456,7 @@ const appController = {
         created_at: unit.created_at,
         updated_at: unit.updated_at
       }));
-      res.json({ units: unitDetails,available_units:available });
+      res.json({ units: unitDetails,available_units:available});
     } catch (error) {
       console.error('Error getting unit details:', error);
       res.status(500).json({ message: 'Error getting unit details' });
