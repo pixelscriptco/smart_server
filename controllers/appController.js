@@ -536,6 +536,9 @@ const appController = {
               floor.units.forEach(unit => {
                 allUnits.push({
                   unit_id: unit.id,
+                  cost: unit.cost??unit.unit_plans.cost,
+                  area: unit.unit_plans.area,
+                  type: unit.unit_plans.type,
                   status: unit.status,
                 });
               });
