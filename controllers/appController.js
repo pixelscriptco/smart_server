@@ -499,7 +499,6 @@ const appController = {
                 model: Unit,
                 as: 'units',
                 required: false,
-                attributes: ['id', 'name', 'status','cost'],
                 order: [['id', 'ASC']],
                 include: [
                   {
