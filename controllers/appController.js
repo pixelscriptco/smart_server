@@ -499,8 +499,16 @@ const appController = {
                 model: Unit,
                 as: 'units',
                 required: false,
-                attributes: ['id', 'name', 'status'],
-                order: [['id', 'ASC']]
+                attributes: ['id', 'name', 'status','cost'],
+                order: [['id', 'ASC']],
+                include: [
+                  {
+                    model: UnitPlan,
+                    as: 'unit_plans',
+                    required: false,
+                    attributes: ['type', 'area', 'cost']
+                  }
+                ]
               }
             ]
           }
