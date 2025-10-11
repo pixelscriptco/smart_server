@@ -419,7 +419,15 @@ const projectController = {
           message: 'Project ID is required'
         });
       }
+      const project = await Project.findByPk(projectId);
       
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: 'Project not found'
+        });
+      }
+
       const towers = await Tower.findAll({
         include: [
           {
@@ -433,6 +441,7 @@ const projectController = {
       
       res.status(200).json({
         success: true,
+        project:project.name,
         towers: towers
       });
     } catch (error) {

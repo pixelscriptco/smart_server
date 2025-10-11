@@ -33,7 +33,7 @@ const uploadToS3 = multer({
   }),
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'image') {
-      if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      if (!file.originalname.match(/\.(JPG|JPEG|PNG|jpg|jpeg|png|gif)$/)) {
         return cb(new Error('Only image files are allowed!'), false);
       }
     } else if (file.fieldname === 'svg') {
@@ -68,7 +68,7 @@ const upload3DImages = multer({
   }),
   fileFilter: (req, file, cb) => {
     // Accept images only
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+    if (!file.originalname.match(/\.(JPG|JPEG|PNG|jpg|jpeg|png)$/)) {
       return cb(new Error('Only image files are allowed!'), false);
     }
     cb(null, true);
