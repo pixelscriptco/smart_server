@@ -40,7 +40,7 @@ const appController = {
     try {
       const { slug } = req.params;
       const project = await Project.findOne({
-        where: { url: slug }
+        where: { url: slug ,status:1}
       }); 
 
       if (!project) {
