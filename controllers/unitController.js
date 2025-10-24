@@ -602,6 +602,59 @@ const unitController = {
       console.error('Error fetching enquiries:', error);
       res.status(500).json({ success: false, message: 'Error fetching enquiries' });
     }
+  },
+
+  // Update VR URL for a unit plan
+  async updateVrUrl(req, res) {
+    try {
+      const { id } = req.params;
+      const { vr_url } = req.body;
+
+      // Validate input
+      if (!vr_url || typeof vr_url !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'VR URL is required and must be a string'
+        });
+      }
+
+      // Validate URL format (basic validation)
+      try {
+        new URL(vr_url);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid URL format'
+        });
+      }
+
+      // Find the unit plan
+      const unitPlan = await UnitPlan.findByPk(id);
+      if (!unitPlan) {
+        return res.status(404).json({
+          success: false,
+          message: 'Unit plan not found'
+        });
+      }
+
+      // Update the VR URL
+      await unitPlan.update({
+        vr_url: vr_url.trim()
+      });
+
+      res.status(200).json({
+        success: true,
+        data: unitPlan,
+        message: 'VR URL updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating VR URL:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating VR URL',
+        error: error.message
+      });
+    }
   }
 };
 
