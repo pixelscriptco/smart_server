@@ -17,6 +17,7 @@ router.post('/', auth, unitController.createUnit);
 // Update unit
 router.put('/:id', auth, unitController.updateUnit);
 router.put('/unitplans/:id/vr-url', auth, unitController.updateVrUrl);
+router.put('/unitplans/:id', auth, unitController.updateUnitPlan);
 
 router.put('/:unit_id/status', auth, unitController.updateStatus);
 

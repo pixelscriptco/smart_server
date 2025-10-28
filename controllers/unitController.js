@@ -559,6 +559,53 @@ const unitController = {
     }
   },
 
+  // Update an existing UnitPlan (fields and optional files)
+  async updateUnitPlan(req, res) {
+    try {
+      uploadToS3(req, res, async function(err) {
+        if (err) {
+          console.error('Upload error:', err);
+          return res.status(400).json({ success: false, message: err.message });
+        }
+
+        const { id } = req.params;
+        const { name, area, cost, type, status, vr_url } = req.body;
+
+        const unitPlan = await UnitPlan.findByPk(id);
+        if (!unitPlan) {
+          return res.status(404).json({ success: false, message: 'Unit plan not found' });
+        }
+
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (area !== undefined) updates.area = area;
+        if (cost !== undefined) updates.cost = cost;
+        if (type !== undefined) updates.type = type;
+        if (status !== undefined) updates.status = status;
+        if (vr_url !== undefined) updates.vr_url = vr_url;
+
+        // Optional file replacements
+        if (req.files && req.files.image && req.files.image[0]) {
+          updates.plan = req.files.image[0].location;
+        }
+        if (req.files && req.files.svg && req.files.svg[0]) {
+          updates.svg_url = req.files.svg[0].location;
+        }
+
+        await unitPlan.update(updates);
+
+        return res.status(200).json({
+          success: true,
+          data: unitPlan,
+          message: 'Unit plan updated successfully'
+        });
+      });
+    } catch (error) {
+      console.error('Error updating unit plan:', error);
+      return res.status(500).json({ success: false, message: 'Error updating unit plan', error: error.message });
+    }
+  },
+
   async getEnquiries(req, res){
     try {
       const { page = 1, limit = 10, search = '' } = req.query;
