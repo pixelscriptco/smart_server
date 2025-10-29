@@ -99,6 +99,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'location logo of the project'
     },
+    walkthrough_video: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Path to animated walkthrough video file'
+    },
+    home_location_description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Description of the home location, neighborhood, amenities, and surroundings'
+    },
     latitude: {
       type: DataTypes.JSON,
       allowNull: true,

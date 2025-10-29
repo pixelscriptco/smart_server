@@ -51,7 +51,7 @@ const upload = multer({
   { name: 'logo', maxCount: 1 },
   { name: 'qr_code', maxCount: 1 },
   { name: 'location_image', maxCount: 1 },
-  { name: 'location_logo', maxCount: 1 }
+  { name: 'location_logo', maxCount: 1 },
 ]);
 
 // Configure multer for S3 upload
@@ -120,7 +120,7 @@ const projectController = {
           });
         }
 
-        const { name, description, company_id, project_url, registration_number,website_link,location,latitude,longitude,location_title,location_description } = req.body;
+        const { name, description, company_id, project_url, registration_number,website_link,location,latitude,longitude,location_title,location_description,home_location_description,walkthrough_video } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationImageFile = req.files && req.files.location_image && req.files.location_image[0];
@@ -142,6 +142,8 @@ const projectController = {
           logo: logoFile ? logoFile.location : null,
           registration_number: registration_number || null,
           qr_code: qrCodeFile ? qrCodeFile.location : null,
+          walkthrough_video: walkthrough_video || null,
+          home_location_description: home_location_description || null,
           location: location ? location : null,
           location_title: location_title ? location_title : null,
           location_description: location_description ? location_description : null,
@@ -252,7 +254,7 @@ const projectController = {
           });
         }
 
-        const { name, url, project_url, status, registration_number,description,location,latitude,longitude,location_title,location_description,location_image,website_link } = req.body;
+        const { name, url, project_url, status, registration_number,description,location,latitude,longitude,location_title,location_description,location_image,website_link,home_location_description,walkthrough_video } = req.body;
         const logoFile = req.files && req.files.logo && req.files.logo[0];
         const qrCodeFile = req.files && req.files.qr_code && req.files.qr_code[0];
         const locationFile = req.files && req.files.location_image && req.files.location_image[0];
@@ -312,6 +314,8 @@ const projectController = {
           logo: logoFile ? logoFile.location : project.logo,
           registration_number: registration_number || project.registration_number,
           qr_code: qrCodeFile ? qrCodeFile.location : project.qr_code,
+          walkthrough_video: walkthrough_video ? walkthrough_video : project.walkthrough_video,
+          home_location_description: home_location_description || project.home_location_description,
           location: location ? location : project.location,
           location_image: locationFile?locationFile:project.location_image,
           location_title: location_title? location_title: project.location_title,
