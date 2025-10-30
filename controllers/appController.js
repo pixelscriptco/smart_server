@@ -96,7 +96,7 @@ const appController = {
       const { slug } = req.params;
       const project = await Project.findOne({
         where: { url: slug },
-        attributes: ['project_url', 'description','location','latitude','longitude','website_link'],
+        attributes: ['project_url', 'description','location','latitude','longitude','website_link','walkthrough_video','home_location_description'],
         include: [
           {
             model: Amenity,
