@@ -137,7 +137,7 @@ const projectController = {
           website_link,
           status: 1,
           user_id: company_id,
-          url: name.replace(/\s+/g, ''),
+          url: name ? name.replace(/\s+/g, '') : null,
           project_url: project_url,
           logo: logoFile ? logoFile.location : null,
           registration_number: registration_number || null,
@@ -306,7 +306,7 @@ const projectController = {
         // Update project
         await project.update({
           name: name || project.name,
-          url: url || project.url,
+          url:  name ? name.replace(/\s+/g, '') : project.url,
           website_link:website_link || project.website_link,
           description: description || project.description,
           project_url: project_url || project.project_url,
