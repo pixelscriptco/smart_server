@@ -236,8 +236,8 @@ const appController = {
         unit_areas: {}
       };
       
-      tower.floors.forEach(floor => {                
-        floor.units.forEach(unit => {
+      tower.floors.forEach(floor => {  
+        floor.units.forEach(unit => {          
           stats.total_units++;
           
           // Count booked vs available units
@@ -249,16 +249,31 @@ const appController = {
 
           // Count unit types
           if (unit.unit_plans) {
-            const type = unit.unit_plans.type;
+            // console.log( unit.unit_plans.area);
+            
+            // Normalize type to ensure consistent grouping (trim whitespace)
+            const type = (unit.unit_plans.type || '').trim();
             const area = unit.unit_plans.area;
             
+            // Skip if type is empty
+            if (!type) {
+              return;
+            }
+            
+            // Initialize to 0 if type doesn't exist, then increment count
+            // This groups all units with the same type together, regardless of area
             if (!stats.unit_types[type]) {
               stats.unit_types[type] = 0;
             }
             stats.unit_types[type]++;
 
-            if (!stats.unit_areas[type]) {
-              stats.unit_areas[type] = area;
+            // Store all unique areas for this type as an array (don't replace, add to array)
+            if (!stats.unit_areas[type]) {              
+              stats.unit_areas[type] = [];
+            }
+            // Add area to array only if it's not already present (stores unique areas)
+            if (!stats.unit_areas[type].includes(area)) {
+              stats.unit_areas[type].push(area);
             }
           }
         });

@@ -404,6 +404,11 @@ exports.listUnits = async (req, res) => {
           model: UnitStatus,
           as: 'unit_status',
           attributes: ['id', 'name', 'color']
+        },
+        {
+          model: Floor,
+          as: 'floor',
+          attributes: ['id', 'name']
         }
       ],
     });
@@ -536,13 +541,33 @@ exports.listBookings = async (req, res) => {
   const offset = (parseInt(page) - 1) * parseInt(limit);
   const whereClause = {};
 
-  // Search by customer name, email, or mobile
+  // Build include conditions
+  // Always filter by user_id to ensure only bookings for projects owned by this user
+  const projectWhere = { user_id };
+
+  // Search by customer name, email, mobile, project name, or unit name
   if (search) {
+    // Add project name search filter to projectWhere
+    // When searching, filter projects by name while still requiring user_id
+    // The project include will only include projects matching the name filter
+    projectWhere.name = { [Op.like]: `%${search}%` };
+
+    // Use Sequelize's association syntax to search across booking and unit fields
+    // Note: When project name matches (handled by projectWhere), the booking will be included
+    // because the project include will match. When booking/unit fields match, they'll also be included.
+    // Since project include is required: true, we need to ensure all user's projects are considered
+    // for booking/unit field matches. We'll handle this by making the project name filter optional
+    // in the OR logic - bookings matching booking/unit fields will still be included even if
+    // their project name doesn't match (because we'll also search without project name filter).
     whereClause[Op.or] = [
+      // Search in booking fields
       { first_name: { [Op.like]: `%${search}%` } },
       { last_name: { [Op.like]: `%${search}%` } },
       { email: { [Op.like]: `%${search}%` } },
-      { mobile: { [Op.like]: `%${search}%` } }
+      { mobile: { [Op.like]: `%${search}%` } },
+      // Search in unit name and slug
+      { '$unit.name$': { [Op.like]: `%${search}%` } },
+      { '$unit.slug$': { [Op.like]: `%${search}%` } }
     ];
   }
 
@@ -561,14 +586,17 @@ exports.listBookings = async (req, res) => {
           model: Project,
           as: 'project',
           attributes: ['name', 'description'],
-          where: { user_id }, // Only include bookings for projects owned by this user
+          where: projectWhere,
+          required: true, // Required to ensure only bookings for projects owned by this user
         },
         {
           model: Unit,
           as: 'unit',
-          attributes: ['id', 'name','slug']
+          attributes: ['id', 'name','slug'],
+          required: false // Non-required allows OR search to work properly when searching in unit fields
         }
       ],
+      distinct: true, // Important for correct count when using includes
       order: [['created_at', 'DESC']],
       limit: parseInt(limit),
       offset

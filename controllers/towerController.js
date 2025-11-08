@@ -245,28 +245,18 @@ const towerController = {
           let tower_plans = await TowerPlan.findAll({where: {tower_id: tower_id}});
 
           // Create floors if floors data is provided
-          if (tower_plans.length==1 && floors) {
-            // const floorsData = JSON.parse(floors);
-            // if (Array.isArray(floorsData) && floorsData.length > 0) {
-            //   // If floors array is provided, create floors based on the data
-            //   for (let index = 1; index <= floorsData.length; index++) {
-            //     const floorName = 'Floor-' + index;
-            //     await Floor.create({
-            //       tower_id,
-            //       name: floorName
-            //     });
-            //   }
-            // } else {
+          if (tower_plans.length==1 && floors) {            
               // Fallback: create floors based on tower floor_count
               const floor_count = tower.floor_count || 1;
-              for (let index = 1; index <= floor_count; index++) {
-                const floorName = 'Floor-' + index;
+              for (let index = 0; index < JSON.parse(floors)[0].parts.length; index++) {
+                console.log(JSON.parse(floors)[0].parts[index]);
+
+                const floorName = 'Floor-' + JSON.parse(floors)[0].parts[index].id;
                 await Floor.create({
                   tower_id,
                   name: floorName
                 });
               }
-            // }
           }
 
           res.status(201).json({
