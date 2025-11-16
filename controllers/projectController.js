@@ -610,7 +610,7 @@ const projectController = {
   async getProjectAmenities(req, res) {
     try {
       const project = await Project.findOne({
-        where: { id: req.params.id },
+        where: { id: req.params.id},
       });
 
       if (!project) {
@@ -621,7 +621,7 @@ const projectController = {
       }
 
       const amenities = await Amenity.findAll({
-        where: { project_id: req.params.id },
+        where: { project_id: req.params.id,active:true  },
         order: [['created_at', 'DESC']]
       });
 
@@ -688,8 +688,10 @@ const projectController = {
 
   // Update project amenity
   async updateProjectAmenity(req, res) {
-    try {
+    try {      
       const { name, vr_url } = req.body;
+
+      // Check if amenity exists first
       const amenity = await Amenity.findByPk(req.params.amenityId);
 
       if (!amenity) {
@@ -697,18 +699,45 @@ const projectController = {
           success: false,
           message: 'Amenity not found'
         });
-      } 
+      }
 
-      await amenity.update({
-        name,
-        vr_url
-      });
+      // Only upload to S3 if image file is provided
+      if (req.files && req.files.image && req.files.image.length > 0) {
+        uploadToS3(req, res, async function(err) {
+          if (err) {
+            console.error('Upload error:', err);
+            return res.status(400).json({
+              success: false,
+              message: err.message
+            });
+          }
 
-      res.status(200).json({
-        success: true,
-        message: 'Amenity updated successfully'
-      });
-      
+          const image = req.files.image[0].location;
+
+          // Update amenity with image
+          await amenity.update({
+            name,
+            image,
+            vr_url
+          });
+
+          res.status(200).json({
+            success: true,
+            message: 'Amenity updated successfully with image'
+          });
+        });
+      } else {
+        // Update amenity without image (only name and vr_url)
+        await amenity.update({
+          name,
+          vr_url
+        });
+
+        res.status(200).json({
+          success: true,
+          message: 'Amenity updated successfully'
+        });
+      }
     } catch (error) {
       console.error('Error updating project amenity:', error);
       res.status(500).json({
