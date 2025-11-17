@@ -1045,6 +1045,8 @@ const appController = {
       // Create the booking
       const booking = await Booking.create({
         email,
+        project_name: project.name,
+        unit_name: unit.name,
         first_name: firstName,
         last_name: lastName,
         mobile,
