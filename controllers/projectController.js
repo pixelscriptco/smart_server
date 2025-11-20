@@ -269,39 +269,39 @@ const projectController = {
         }
 
         // If new logo is uploaded, delete old one from S3
-        if (logoFile && project.logo) {
-          const oldLogoKey = project.logo.split('/').pop();
-          await s3Client.deleteObject({
-            Bucket: config.aws.bucketName,
-            Key: `projects/logos/${oldLogoKey}`
-          }).promise();
-        }
+        // if (logoFile && project.logo) {
+        //   const oldLogoKey = project.logo.split('/').pop();
+        //   await s3Client.deleteObject({
+        //     Bucket: config.aws.bucketName,
+        //     Key: `projects/logos/${oldLogoKey}`
+        //   }).promise();
+        // }
         // If new qr_code is uploaded, delete old one from S3
-        if (qrCodeFile && project.qr_code) {
-          const oldQrKey = project.qr_code.split('/').pop();
-          await s3Client.deleteObject({
-            Bucket: config.aws.bucketName,
-            Key: `qr_code/${oldQrKey}`
-          }).promise();
-        }
+        // if (qrCodeFile && project.qr_code) {
+        //   const oldQrKey = project.qr_code.split('/').pop();
+        //   await s3Client.deleteObject({
+        //     Bucket: config.aws.bucketName,
+        //     Key: `qr_code/${oldQrKey}`
+        //   }).promise();
+        // }
 
         // If new qr_code is uploaded, delete old one from S3
-        if (locationFile && project.location_image) {
-          const oldLocationImage = project.location_image.split('/').pop();
-          await s3Client.deleteObject({
-            Bucket: config.aws.bucketName,
-            Key: `location/${oldLocationImage}`
-          }).promise();
-        }
+        // if (locationFile && project.location_image) {
+        //   const oldLocationImage = project.location_image.split('/').pop();
+        //   await s3Client.deleteObject({
+        //     Bucket: config.aws.bucketName,
+        //     Key: `location/${oldLocationImage}`
+        //   }).promise();
+        // }
 
         // If new location logo is uploaded, delete old one from S3
-        if (locationLogoFile && project.location_logo) {
-          const oldLocationLogo = project.location_logo.split('/').pop();
-          await s3Client.deleteObject({
-            Bucket: config.aws.bucketName,
-            Key: `location_logo/${oldLocationLogo}`
-          }).promise();
-        }
+        // if (locationLogoFile && project.location_logo) {
+        //   const oldLocationLogo = project.location_logo.split('/').pop();
+        //   await s3Client.deleteObject({
+        //     Bucket: config.aws.bucketName,
+        //     Key: `location_logo/${oldLocationLogo}`
+        //   }).promise();
+        // }
 
         // Update project
         await project.update({
