@@ -1,9 +1,10 @@
-const { Project, Tower, Building,UnitPlan,ProjectUpdate, User, Amenity } = require('../models');
+const { Project, Tower, Building, UnitPlan, ProjectUpdate, User, Amenity, Floor, Unit } = require('../models');
 const path = require('path');
 const { S3Client } = require('@aws-sdk/client-s3');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const config = require('../config/config');
+const { Op } = require('sequelize');
 
 // Configure AWS S3 Client
 const s3Client = new S3Client({
@@ -318,7 +319,7 @@ const projectController = {
           home_location_description: home_location_description || project.home_location_description,
           location: location ? location : project.location,
           location_image: locationFile?locationFile:project.location_image,
-          location_title: location_title? location_title: project.location_title,
+          location_title: location_title? location_title : project.location_title,
           location_description: location_description? location_description: project.location_description,
           latitude: latitude ? JSON.parse(latitude) : project.latitude,
           longitude: longitude ? JSON.parse(longitude) : project.longitude,
@@ -356,25 +357,67 @@ const projectController = {
         });
       }
 
-      // Update only the status
-      await project.update({
-        status: status
-      });
+      // Validate project contains at least one building, tower, floor and unit
+      const buildingCount = await Building.count({ where: { project_id: projectId }});
+      if (!buildingCount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Project must contain at least one building before changing status'
+        });
+      }
 
-      res.status(200).json({
-        success: true,
-        data: project,
-        message: 'Project status updated successfully'
-      });
-    } catch (error) {
-      console.error('Error updating project status:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error updating project status',
-        error: error.message
-      });
-    }
-  },
+      const buildings = await Building.findAll({ where: { project_id: projectId }, attributes: ['id'] });
+      const buildingIds = buildings.map(b => b.id);
+
+      const towerCount = await Tower.count({ where: { building_id: { [Op.in]: buildingIds } }});
+      if (!towerCount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Project must contain at least one tower before changing status'
+        });
+      }
+
+      const towers = await Tower.findAll({ where: { building_id: { [Op.in]: buildingIds } }, attributes: ['id'] });
+      const towerIds = towers.map(t => t.id);
+
+      const floorCount = await Floor.count({ where: { tower_id: { [Op.in]: towerIds } }});
+      if (!floorCount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Project must contain at least one floor before changing status'
+        });
+      }
+
+      const floors = await Floor.findAll({ where: { tower_id: { [Op.in]: towerIds }}, attributes: ['id'] });
+      const floorIds = floors.map(f => f.id);
+
+      const unitCount = await Unit.count({ where: { floor_id: { [Op.in]: floorIds },status:1 }});
+      if (!unitCount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Project must contain at least one unit before changing status'
+        });
+      }
+
+       // Update only the status
+       await project.update({
+         status: status
+       });
+ 
+       res.status(200).json({
+         success: true,
+         data: project,
+         message: 'Project status updated successfully'
+       });
+     } catch (error) {
+       console.error('Error updating project status:', error);
+       res.status(500).json({
+         success: false,
+         message: 'Error updating project status',
+         error: error.message
+       });
+     }
+   },
 
   // Delete project
   async deleteProject(req, res) {
