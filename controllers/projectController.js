@@ -135,7 +135,7 @@ const projectController = {
           name,
           description,
           website_link,
-          status: 1,
+          status: 0,
           user_id: company_id,
           url: name ? name.replace(/\s+/g, '') : null,
           project_url: project_url,
